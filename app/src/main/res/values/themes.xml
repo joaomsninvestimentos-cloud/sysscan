@@ -1,0 +1,10 @@
+<?xml version="1.0" encoding="utf-8"?>
+<resources>
+    <style name="Theme.SysScan" parent="Theme.Material3.DayNight.NoActionBar">
+        <item name="colorPrimary">@color/sysscan_primary</item>
+        <item name="colorPrimaryDark">@color/sysscan_primary_dark</item>
+        <item name="colorAccent">@color/sysscan_accent</item>
+        <item name="android:statusBarColor">@color/sysscan_primary_dark</item>
+        <item name="android:windowLightStatusBar">false</item>
+    </style>
+</resources>

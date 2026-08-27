@@ -1,0 +1,25 @@
+<?xml version="1.0" encoding="utf-8"?>
+<resources>
+    <color name="sysscan_primary">#4CC59B</color>
+    <color name="sysscan_primary_dark">#063A2B</color>
+    <color name="sysscan_primary_light">#121212</color>
+    <color name="sysscan_accent">#F4A261</color>
+
+    <color name="ok_green">#66BB6A</color>
+    <color name="ok_green_bg">#1B3322</color>
+    <color name="warn_amber">#FFA726</color>
+    <color name="warn_amber_bg">#3A2A1A</color>
+    <color name="crit_red">#EF5350</color>
+    <color name="crit_red_bg">#3A1E1E</color>
+    <color name="info_blue">#64B5F6</color>
+    <color name="info_blue_bg">#1A2A3A</color>
+
+    <color name="white">#FFFFFF</color>
+    <color name="gray_text">#B0B3B8</color>
+    <color name="text_primary">#E0E6E2</color>
+    <color name="divider">#333333</color>
+    <color name="card_bg">#1E1E1E</color>
+    <color name="score_circle_ok">#66BB6A</color>
+    <color name="score_circle_warn">#FFA726</color>
+    <color name="score_circle_crit">#EF5350</color>
+</resources>

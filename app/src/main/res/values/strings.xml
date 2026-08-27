@@ -1,0 +1,55 @@
+<?xml version="1.0" encoding="utf-8"?>
+<resources>
+    <string name="app_name">SysScan</string>
+
+    <string name="scan_title">Varredura do sistema</string>
+    <string name="scan_subtitle">Diagnóstico de estabilidade estilo sfc /scannow</string>
+    <string name="scan_start">Iniciar varredura</string>
+    <string name="scan_again">Nova varredura</string>
+    <string name="scan_in_progress">Verificando…</string>
+
+    <string name="health_score">Saúde do sistema</string>
+    <string name="score_summary_ok">Sistema estável. Nenhum problema relevante encontrado.</string>
+    <string name="score_summary_warn">Foram encontrados pontos de atenção. Revise os itens abaixo.</string>
+    <string name="score_summary_critical">Problemas críticos detectados. Corrija os itens abaixo.</string>
+
+    <string name="results_title">Resultados da varredura</string>
+    <string name="results_ok">OK</string>
+    <string name="results_warning">Atenção</string>
+    <string name="results_critical">Crítico</string>
+    <string name="results_info">Info</string>
+    <string name="results_fix">Corrigir</string>
+    <string name="results_repaired">Corrigido</string>
+    <string name="fix_running">Executando reparo…</string>
+    <string name="fix_not_possible">Sem correção automática</string>
+
+    <string name="root_status_label">Status do root</string>
+    <string name="root_required_note">Alguns reparos avançados exigem acesso root.</string>
+
+    <string name="elapsed_label">Tempo da varredura</string>
+
+    <string name="fix_all">Corrigir tudo</string>
+    <string name="fix_all_running">Corrigindo todos os itens…</string>
+    <string name="fix_all_done">Reparos em lote concluídos</string>
+    <string name="fix_all_none">Nenhum item corrigível no momento</string>
+
+    <string name="history_title">Histórico de varreduras</string>
+    <string name="history_chart_title">Evolução do score de saúde</string>
+    <string name="history_empty">Nenhuma varredura registrada ainda. Execute uma varredura para começar o histórico.</string>
+    <string name="history_open">Histórico</string>
+
+    <string name="toggle_dark">Modo escuro</string>
+    <string name="toggle_light">Modo claro</string>
+
+    <string name="update_check">Verificar atualização</string>
+    <string name="update_checking">Verificando atualização…</string>
+    <string name="update_uptodate">Você está na versão mais recente</string>
+    <string name="update_not_configured">Repositório de atualizações não configurado</string>
+    <string name="update_error">Não foi possível verificar atualizações</string>
+    <string name="update_available">Nova versão disponível</string>
+    <string name="update_download_install">Baixar e instalar</string>
+    <string name="update_later">Depois</string>
+    <string name="update_downloading">Baixando atualização…</string>
+    <string name="update_download_failed">Falha ao baixar a atualização</string>
+    <string name="update_install_failed">Não foi possível abrir o instalador</string>
+</resources>

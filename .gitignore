@@ -174,3 +174,19 @@
 *.lz
 *.lzma
 *.iso
+
+# Android
+.gradle/
+build/
+local.properties
+*.apk
+*.aab
+.cxx/
+captures/
+.externalNativeBuild/
+
+# Assinatura e distribuição
+release.keystore
+*.jks
+keystore*
+dist/

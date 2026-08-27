@@ -1,0 +1,9 @@
+<?xml version="1.0" encoding="utf-8"?>
+<resources>
+    <dimen name="space_small">8dp</dimen>
+    <dimen name="space_medium">16dp</dimen>
+    <dimen name="space_large">24dp</dimen>
+    <dimen name="card_radius">16dp</dimen>
+    <dimen name="score_circle_size">140dp</dimen>
+    <dimen name="item_icon_size">40dp</dimen>
+</resources>
