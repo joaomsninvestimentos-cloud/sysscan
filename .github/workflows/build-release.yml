@@ -29,7 +29,7 @@ jobs:
 
       - name: Restaurar keystore de release
         run: |
-          echo "${{ secrets.KEYSTORE_BASE64 }}" | base64 -d > release.keystore
+          echo "${{ secrets.KEYSTORE_BASE64 }}" | tr -d ' \r\n' | base64 -d > release.keystore
           chmod 600 release.keystore
 
       - name: Tornar gradlew executável
@@ -45,8 +45,8 @@ jobs:
           $ANDROID_HOME/build-tools/34.0.0/apksigner sign \
             --ks release.keystore \
             --ks-key-alias sysscan \
-            --ks-pass pass:${{ secrets.KEYSTORE_PASSWORD }} \
-            --key-pass pass:${{ secrets.KEYSTORE_PASSWORD }} \
+            --ks-pass pass:$(echo "${{ secrets.KEYSTORE_PASSWORD }}" | tr -d ' \r\n') \
+            --key-pass pass:$(echo "${{ secrets.KEYSTORE_PASSWORD }}" | tr -d ' \r\n') \
             --out dist/SysScan.apk dist/app-aligned.apk
 
       - name: Publicar release no GitHub
