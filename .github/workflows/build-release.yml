@@ -41,6 +41,7 @@ jobs:
 
       - name: Assinar APK
         run: |
+          mkdir -p dist
           $ANDROID_HOME/build-tools/34.0.0/zipalign -f 4 \
             app/build/outputs/apk/release/app-release-unsigned.apk dist/app-aligned.apk
           $ANDROID_HOME/build-tools/34.0.0/apksigner sign \
