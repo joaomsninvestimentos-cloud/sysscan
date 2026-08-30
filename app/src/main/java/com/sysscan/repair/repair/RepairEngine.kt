@@ -90,6 +90,30 @@ object FixRegistry {
         ),
         "sys_reflash" to FixDefinition(
             "sys_reflash", "Instalar ROM original (via recovery)"
+        ),
+        "root_trim" to FixDefinition(
+            "root_trim", "Otimizar armazenamento (fstrim, root)",
+            requiresRoot = true, command = "sync; fstrim -v /data 2>&1 || fstrim -v / 2>&1"
+        ),
+        "root_cache" to FixDefinition(
+            "root_cache", "Limpar caches do sistema (root)",
+            requiresRoot = true, command = "sync; rm -rf /data/cache/* /cache/* 2>/dev/null; echo done"
+        ),
+        "root_mem" to FixDefinition(
+            "root_mem", "Liberar memória e caches do kernel (root)",
+            requiresRoot = true, command = "sync; echo 3 > /proc/sys/vm/drop_caches; echo done"
+        ),
+        "root_junk" to FixDefinition(
+            "root_junk", "Remover arquivos temporários e lixo do sistema (root)",
+            requiresRoot = true, command = "sync; rm -rf /data/local/tmp/* /data/anr/* /data/tombstones/* 2>/dev/null; echo done"
+        ),
+        "root_logs" to FixDefinition(
+            "root_logs", "Limpar logs do sistema (root)",
+            requiresRoot = true, command = "sync; logcat -c 2>/dev/null; echo done"
+        ),
+        "root_garbage" to FixDefinition(
+            "root_garbage", "Rodar coleta de lixo e reiniciar Zygote (root)",
+            requiresRoot = true, command = "sync; stop; start; echo done"
         )
     )
 

@@ -43,6 +43,16 @@ class SystemDiagnostics(private val context: Context, private val hasRoot: Boole
             },
             "Verificando integridade do sistema" to {
                 SystemIntegrityDiagnostic(hasRoot).check()
+            },
+            "Análise profunda (root)" to {
+                if (hasRoot) RootDeepDiagnostic().check()
+                else listOf(
+                    ScanCheckBuilder.info(
+                        "deep_root_unavailable", ScanCategory.SYSTEM, "Análise profunda",
+                        "Esta análise exige acesso root. Desbloqueie o bootloader e instale " +
+                            "Magisk/KernelSU para verificação avançada."
+                    )
+                )
             }
         )
 
