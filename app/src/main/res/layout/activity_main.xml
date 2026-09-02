@@ -279,7 +279,40 @@
             android:textStyle="bold"
             android:textSize="13sp"
             tools:text="0 Crítico" />
+
+        <TextView
+            android:id="@+id/btnFilterClear"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:layout_gravity="center"
+            android:layout_marginStart="8dp"
+            android:paddingStart="10dp"
+            android:paddingEnd="10dp"
+            android:paddingTop="8dp"
+            android:paddingBottom="8dp"
+            android:text="@string/filter_clear"
+            android:textColor="@color/gray_text"
+            android:textSize="13sp"
+            android:textStyle="bold"
+            android:background="@drawable/bg_pill_clear"
+            android:visibility="gone"
+            tools:text="Limpar" />
     </LinearLayout>
+
+    <TextView
+        android:id="@+id/emptyFilterText"
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:layout_marginStart="@dimen/space_medium"
+        android:layout_marginEnd="@dimen/space_medium"
+        android:layout_marginBottom="@dimen/space_medium"
+        android:gravity="center"
+        android:padding="@dimen/space_large"
+        android:background="@color/card_bg"
+        android:text="@string/filter_empty"
+        android:textColor="@color/gray_text"
+        android:textSize="14sp"
+        android:visibility="gone" />
 
     <androidx.recyclerview.widget.RecyclerView
         android:id="@+id/resultsList"

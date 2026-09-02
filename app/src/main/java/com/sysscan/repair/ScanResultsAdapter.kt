@@ -15,14 +15,29 @@ class ScanResultsAdapter(
     private val onFix: (ScanCheck) -> Unit
 ) : RecyclerView.Adapter<ScanResultsAdapter.VH>() {
 
-    private var items: List<ScanCheck> = emptyList()
+    private var allItems: List<ScanCheck> = emptyList()
     private var fixResults: Map<String, FixResult> = emptyMap()
+    private var severityFilter: ScanSeverity? = null
 
     fun submit(newItems: List<ScanCheck>, newFixResults: Map<String, FixResult>) {
-        items = newItems
+        allItems = newItems
         fixResults = newFixResults
         notifyDataSetChanged()
     }
+
+    fun setSeverityFilter(severity: ScanSeverity?) {
+        severityFilter = severity
+        notifyDataSetChanged()
+    }
+
+    fun hasItemsFor(severity: ScanSeverity): Boolean =
+        allItems.any { it.severity == severity }
+
+    private val visibleItems: List<ScanCheck>
+        get() {
+            val filter = severityFilter ?: return allItems
+            return allItems.filter { it.severity == filter }
+        }
 
     override fun onCreateViewHolder(parent: ViewGroup, viewType: Int): VH {
         val binding = ItemScanCheckBinding.inflate(
@@ -31,10 +46,10 @@ class ScanResultsAdapter(
         return VH(binding)
     }
 
-    override fun getItemCount(): Int = items.size
+    override fun getItemCount(): Int = visibleItems.size
 
     override fun onBindViewHolder(holder: VH, position: Int) {
-        val check = items[position]
+        val check = visibleItems[position]
         val binding = holder.binding
 
         binding.checkTitle.text = check.title
@@ -66,6 +81,8 @@ class ScanResultsAdapter(
             }
         }
     }
+
+    fun currentFilter(): ScanSeverity? = severityFilter
 
     private fun visualFor(severity: ScanSeverity): Pair<Int, Int> = when (severity) {
         ScanSeverity.OK -> R.drawable.ic_check_circle to R.color.ok_green

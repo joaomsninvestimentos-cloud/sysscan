@@ -52,4 +52,10 @@
     <string name="update_downloading">Baixando atualização…</string>
     <string name="update_download_failed">Falha ao baixar a atualização</string>
     <string name="update_install_failed">Não foi possível abrir o instalador</string>
+    <string name="filter_clear">Limpar</string>
+    <string name="filter_empty">Nenhum item com esta classificação.</string>
+    <string name="filter_desc">%1$d %2$s — toque para filtrar</string>
+    <string name="severity_ok">OK</string>
+    <string name="severity_warning">Atenção</string>
+    <string name="severity_critical">Crítico</string>
 </resources>
