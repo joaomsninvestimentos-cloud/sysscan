@@ -20,7 +20,7 @@ class ScanResultsAdapter(
     private var severityFilter: ScanSeverity? = null
 
     fun submit(newItems: List<ScanCheck>, newFixResults: Map<String, FixResult>) {
-        allItems = newItems
+        allItems = newItems.sortedBy { severityOrder(it.severity) }
         fixResults = newFixResults
         notifyDataSetChanged()
     }
@@ -32,6 +32,9 @@ class ScanResultsAdapter(
 
     fun hasItemsFor(severity: ScanSeverity): Boolean =
         allItems.any { it.severity == severity }
+
+    fun indexOfFirst(severity: ScanSeverity): Int =
+        visibleItems.indexOfFirst { it.severity == severity }
 
     private val visibleItems: List<ScanCheck>
         get() {
@@ -83,6 +86,13 @@ class ScanResultsAdapter(
     }
 
     fun currentFilter(): ScanSeverity? = severityFilter
+
+    private fun severityOrder(severity: ScanSeverity): Int = when (severity) {
+        ScanSeverity.CRITICAL -> 0
+        ScanSeverity.WARNING -> 1
+        ScanSeverity.INFO -> 2
+        ScanSeverity.OK -> 3
+    }
 
     private fun visualFor(severity: ScanSeverity): Pair<Int, Int> = when (severity) {
         ScanSeverity.OK -> R.drawable.ic_check_circle to R.color.ok_green

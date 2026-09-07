@@ -22,9 +22,13 @@ e oferece ações de correção — incluindo recursos avançados que usam **roo
 
 ### Detecção refinada de root
 O app identifica qual método de root está em uso e mostra no status:
-- **Magisk** (com número de versão), **KernelSU**, **SuperSU** ou outro
+- **Magisk** (com número de versão), **KernelSU**, **SuperSU** ou outro — inclusive app oculto/renomeado
+- Toque em **Status do root** para disparar o pedido de permissão no Magisk
 - Presença de **BusyBox** e quantidade de **módulos ativos**
-- Suspeita de **root oculto** (ex.: Shamiko) quando há binários `su` sem acesso confirmado
+- Suspeita de **root oculto** (ex.: Shamiko) quando há pistas de Magisk sem acesso confirmado
+
+### Filtros OK / Atenção / Crítico
+Os contadores são botões: toque em **Atenção** ou **Crítico** para filtrar e ir direto ao primeiro item daquele tipo. Toque de novo para voltar à lista completa.
 
 ### Reparo
 Ações executáveis pelo app (individuais ou em **lote** — "Corrigir tudo"):
@@ -44,9 +48,15 @@ Ações que exigem **root**:
 - **Dark mode**: alternância entre claro/escuro pelo botão no cabeçalho
 
 ### Atualização automática (OTA)
-O app pode se auto-atualizar: consulta a última **Release do GitHub**, compara com a
-versão instalada e, se houver novidade, baixa e instala o novo APK. O fluxo completo
-(pipeline CI/CD no GitHub + ordem correta) está documentado em `DEPLOY.md`.
+O app consulta `joaomsninvestimentos-cloud/sysscan` na API do GitHub (ao abrir e no
+ícone de download). Se a última Release tiver um APK com versão maior, baixa e instala.
+O fluxo CI/CD está em `DEPLOY.md`.
+
+### Assistente (chat)
+Ícone de conversa no topo. Lê a última varredura e responde com um plano de melhoria
+(bateria, lentidão, calor, espaço, root). Funciona **offline**. Opcionalmente, no
+próprio chat, cole sua chave `USER_LLM_API_KEY` (API compatível com OpenAI, ex. DeepSeek)
+para respostas mais livres.
 
 ## Limitações importantes
 
@@ -86,6 +96,10 @@ app/src/main/java/com/sysscan/repair/
 │   └── RootChecker.kt           # Detecção de método de root, Magisk/KernelSU, BusyBox, módulos
 ├── repair/
 │   └── RepairEngine.kt          # Registro e execução das ações de reparo
+├── advisor/
+│   ├── ChatActivity.kt          # Chat de dicas (local + LLM opcional)
+│   ├── DeviceAdvisor.kt         # Respostas com base na última varredura
+│   └── LlmClient.kt             # Cliente OpenAI-compatible (USER_LLM_*)
 └── history/
     ├── ScanHistoryStore.kt      # Persistência das varreduras (SharedPreferences)
     ├── ScoreChartView.kt        # Gráfico da evolução do score (view custom)

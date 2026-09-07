@@ -25,6 +25,10 @@
 
     <string name="root_status_label">Status do root</string>
     <string name="root_required_note">Alguns reparos avançados exigem acesso root.</string>
+    <string name="root_requesting">Solicitando acesso root…</string>
+    <string name="root_grant_hint">Autorize o SysScan no Magisk/KernelSU e toque aqui de novo.</string>
+    <string name="root_granted">Acesso root concedido.</string>
+    <string name="root_still_denied">Root não concedido. Abra o Magisk e permita este app.</string>
 
     <string name="elapsed_label">Tempo da varredura</string>
 
@@ -44,9 +48,12 @@
     <string name="update_check">Verificar atualização</string>
     <string name="update_checking">Verificando atualização…</string>
     <string name="update_uptodate">Você está na versão mais recente</string>
+    <string name="update_uptodate_detail">Atualizado. Instalado %1$s, última Release %2$s.</string>
     <string name="update_not_configured">Repositório de atualizações não configurado</string>
     <string name="update_error">Não foi possível verificar atualizações</string>
     <string name="update_available">Nova versão disponível</string>
+    <string name="update_banner">Atualizar para %1$s</string>
+    <string name="update_allow_unknown">Permita instalar apps deste origem e toque de novo em Atualizar.</string>
     <string name="update_download_install">Baixar e instalar</string>
     <string name="update_later">Depois</string>
     <string name="update_downloading">Baixando atualização…</string>
@@ -54,8 +61,29 @@
     <string name="update_install_failed">Não foi possível abrir o instalador</string>
     <string name="filter_clear">Limpar</string>
     <string name="filter_empty">Nenhum item com esta classificação.</string>
-    <string name="filter_desc">%1$d %2$s — toque para filtrar</string>
+    <string name="filter_desc">%1$d %2$s — toque para ir até os itens</string>
+    <string name="filter_showing">Mostrando %1$d item(ns) de %2$s</string>
     <string name="severity_ok">OK</string>
     <string name="severity_warning">Atenção</string>
     <string name="severity_critical">Crítico</string>
+
+    <string name="chat_open">Assistente</string>
+    <string name="chat_title">Assistente SysScan</string>
+    <string name="chat_back">Voltar</string>
+    <string name="chat_hint">Pergunte como melhorar o aparelho…</string>
+    <string name="chat_send">Enviar</string>
+    <string name="chat_thinking">Pensando…</string>
+    <string name="chat_mode_local">Dicas com base na varredura (sem internet)</string>
+    <string name="chat_mode_llm">IA online (sua chave)</string>
+    <string name="chat_settings">IA online (opcional)</string>
+    <string name="chat_llm_help">Cole sua própria chave de API. O app usa o padrão OpenAI-compatible (ex.: DeepSeek). Deixe em branco para usar só as dicas locais da varredura.</string>
+    <string name="chat_llm_key">USER_LLM_API_KEY</string>
+    <string name="chat_llm_url">https://api.deepseek.com/v1</string>
+    <string name="chat_llm_model">deepseek-chat</string>
+    <string name="chat_save">Salvar</string>
+    <string name="chat_saved">Configuração salva</string>
+    <string name="chat_chip_plan">O que eu faço agora?</string>
+    <string name="chat_chip_battery">Melhorar bateria</string>
+    <string name="chat_chip_slow">Celular lento</string>
+    <string name="chat_chip_root">Como ativar o root</string>
 </resources>

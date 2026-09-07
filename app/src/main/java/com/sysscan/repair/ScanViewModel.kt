@@ -3,6 +3,7 @@ package com.sysscan.repair
 import android.app.Application
 import androidx.lifecycle.AndroidViewModel
 import androidx.lifecycle.viewModelScope
+import com.sysscan.repair.advisor.LastScanStore
 import com.sysscan.repair.diag.SystemDiagnostics
 import com.sysscan.repair.history.ScanHistoryStore
 import com.sysscan.repair.model.ScanCheck
@@ -45,8 +46,14 @@ class ScanViewModel(application: Application) : AndroidViewModel(application) {
     private val repairEngine = RepairEngine(application)
 
     init {
+        _rootInfo.value = "Verificando root…"
+        refreshRoot(force = false)
+    }
+
+    fun refreshRoot(force: Boolean = true) {
         viewModelScope.launch(Dispatchers.Default) {
-            val status = RootChecker.status()
+            if (force) _rootInfo.value = "Solicitando acesso root…"
+            val status = RootChecker.status(getApplication(), force)
             _lastRootStatus.value = status
             _rootInfo.value = status.describe()
         }
@@ -57,7 +64,7 @@ class ScanViewModel(application: Application) : AndroidViewModel(application) {
         _uiState.value = ScanUiState.Scanning(0, 0, "Iniciando varredura...")
         viewModelScope.launch(Dispatchers.Default) {
             try {
-                val rootStatus = RootChecker.status()
+                val rootStatus = RootChecker.status(getApplication(), force = false)
                 _lastRootStatus.value = rootStatus
                 _rootInfo.value = rootStatus.describe()
                 val hasRoot = rootStatus.hasRoot
@@ -76,6 +83,7 @@ class ScanViewModel(application: Application) : AndroidViewModel(application) {
                 )
                 _uiState.value = ScanUiState.Done(summary)
                 ScanHistoryStore.add(getApplication(), summary)
+                LastScanStore.save(getApplication(), summary)
             } catch (e: Exception) {
                 _uiState.value = ScanUiState.Error(e.message ?: "Erro durante a varredura.")
             }

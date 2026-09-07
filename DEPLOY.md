@@ -29,7 +29,7 @@ nas plataformas.
 ### 1. Suba o projeto para o GitHub
 
 ```bash
-git remote add origin https://github.com/SEU-USUARIO/sysscan.git
+git remote add origin https://github.com/joaomsninvestimentos-cloud/sysscan.git
 git push -u origin master
 ```
 
@@ -55,7 +55,7 @@ base64 -w0 release.keystore
 Edite `app/src/main/java/com/sysscan/repair/updater/UpdateChecker.kt` e troque:
 
 ```kotlin
-const val GITHUB_REPO = "SEU-USUARIO/sysscan"
+const val GITHUB_REPO = "joaomsninvestimentos-cloud/sysscan"
 ```
 
 pelo seu repositório real (`usuario/repositorio`).
@@ -81,7 +81,7 @@ O workflow `build-release.yml` roda, compila, assina e publica a Release
 O app, ao tocar no botão de download (canto superior do app), consulta:
 
 ```
-https://api.github.com/repos/SEU-USUARIO/sysscan/releases/latest
+https://api.github.com/repos/joaomsninvestimentos-cloud/sysscan/releases/latest
 ```
 
 - Se a versão da última tag for **maior** que a versão instalada, mostra

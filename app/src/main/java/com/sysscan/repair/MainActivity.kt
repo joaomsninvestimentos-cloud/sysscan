@@ -14,10 +14,12 @@ import androidx.lifecycle.lifecycleScope
 import androidx.lifecycle.repeatOnLifecycle
 import androidx.recyclerview.widget.LinearLayoutManager
 import com.sysscan.repair.databinding.ActivityMainBinding
+import com.sysscan.repair.advisor.ChatActivity
 import com.sysscan.repair.history.HistoryActivity
 import com.sysscan.repair.model.ScanCheck
 import com.sysscan.repair.model.ScanSeverity
 import com.sysscan.repair.model.ScanSummary
+import com.sysscan.repair.updater.UpdateCheckResult
 import com.sysscan.repair.updater.UpdateChecker
 import com.sysscan.repair.updater.UpdateInfo
 import kotlinx.coroutines.Dispatchers
@@ -32,6 +34,7 @@ class MainActivity : AppCompatActivity() {
     private var updating = false
     private var severityFilter: ScanSeverity? = null
     private var lastSummary: ScanSummary? = null
+    private var pendingUpdate: UpdateInfo? = null
 
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
@@ -43,19 +46,27 @@ class MainActivity : AppCompatActivity() {
         binding.resultsList.adapter = adapter
 
         binding.btnScan.setOnClickListener { viewModel.startScan() }
-        binding.btnUpdate.setOnClickListener { checkForUpdate() }
+        binding.btnUpdate.setOnClickListener { checkForUpdate(silent = false) }
         binding.btnDarkToggle.setOnClickListener { toggleDarkMode() }
         binding.btnHistory.setOnClickListener {
             startActivity(Intent(this, HistoryActivity::class.java))
         }
+        binding.btnChat.setOnClickListener {
+            startActivity(Intent(this, ChatActivity::class.java))
+        }
         binding.btnFixAll.setOnClickListener { onFixAllClicked() }
+        binding.rootRow.setOnClickListener { onRootStatusClicked() }
         binding.okCount.setOnClickListener { toggleFilter(ScanSeverity.OK) }
         binding.warnCount.setOnClickListener { toggleFilter(ScanSeverity.WARNING) }
         binding.critCount.setOnClickListener { toggleFilter(ScanSeverity.CRITICAL) }
         binding.btnFilterClear.setOnClickListener { toggleFilter(null) }
+        binding.btnUpdateBanner.setOnClickListener {
+            pendingUpdate?.let { showUpdateDialog(it) } ?: checkForUpdate(silent = false)
+        }
 
         updateDarkToggleIcon()
         observeState()
+        checkForUpdate(silent = true)
     }
 
     private fun isNightMode(): Boolean =
@@ -85,6 +96,13 @@ class MainActivity : AppCompatActivity() {
                 launch {
                     viewModel.rootInfo.collect { info ->
                         binding.rootStatus.text = info
+                        val granted = viewModel.lastRootStatus.value?.hasRoot == true
+                        binding.rootStatus.setTextColor(
+                            ContextCompat.getColor(
+                                this@MainActivity,
+                                if (granted) R.color.ok_green else R.color.warn_amber
+                            )
+                        )
                     }
                 }
                 launch {
@@ -189,6 +207,23 @@ class MainActivity : AppCompatActivity() {
         adapter.submit(summary.checks, fixResults)
     }
 
+    private fun onRootStatusClicked() {
+        val current = viewModel.lastRootStatus.value
+        if (current?.hasRoot == true) {
+            Toast.makeText(this, R.string.root_granted, Toast.LENGTH_SHORT).show()
+            return
+        }
+        Toast.makeText(this, R.string.root_requesting, Toast.LENGTH_SHORT).show()
+        viewModel.refreshRoot(force = true)
+        binding.rootRow.postDelayed({
+            val status = viewModel.lastRootStatus.value
+            if (status?.hasRoot != true) {
+                Toast.makeText(this, R.string.root_grant_hint, Toast.LENGTH_LONG).show()
+                com.sysscan.repair.root.RootChecker.openManager(this)
+            }
+        }, 3500)
+    }
+
     private fun toggleFilter(severity: ScanSeverity?) {
         val summary = lastSummary ?: return
         val target = if (severityFilter == severity) null else severity
@@ -207,20 +242,44 @@ class MainActivity : AppCompatActivity() {
         adapter.setSeverityFilter(target)
         renderFilterPills(summary)
         renderEmptyFilterMessage()
+        if (target != null && count > 0) {
+            val label = when (target) {
+                ScanSeverity.OK -> getString(R.string.severity_ok)
+                ScanSeverity.WARNING -> getString(R.string.severity_warning)
+                ScanSeverity.CRITICAL -> getString(R.string.severity_critical)
+                else -> ""
+            }
+            Toast.makeText(
+                this,
+                getString(R.string.filter_showing, count, label),
+                Toast.LENGTH_SHORT
+            ).show()
+            scrollToFilteredItem(target)
+        }
+    }
+
+    private fun scrollToFilteredItem(severity: ScanSeverity) {
+        binding.resultsList.post {
+            val index = adapter.indexOfFirst(severity)
+            if (index >= 0) {
+                val manager = binding.resultsList.layoutManager as? LinearLayoutManager
+                manager?.scrollToPositionWithOffset(index, 24)
+            }
+        }
     }
 
     private fun renderFilterPills(summary: ScanSummary) {
-        binding.okCount.setBackgroundResource(
-            if (severityFilter == ScanSeverity.OK) R.drawable.bg_pill_ok_active
-            else R.drawable.bg_pill_ok
+        binding.okCount.backgroundTintList = ContextCompat.getColorStateList(
+            this,
+            if (severityFilter == ScanSeverity.OK) R.color.ok_green else R.color.ok_green_bg
         )
-        binding.warnCount.setBackgroundResource(
-            if (severityFilter == ScanSeverity.WARNING) R.drawable.bg_pill_warn_active
-            else R.drawable.bg_pill_warn
+        binding.warnCount.backgroundTintList = ContextCompat.getColorStateList(
+            this,
+            if (severityFilter == ScanSeverity.WARNING) R.color.warn_amber else R.color.warn_amber_bg
         )
-        binding.critCount.setBackgroundResource(
-            if (severityFilter == ScanSeverity.CRITICAL) R.drawable.bg_pill_crit_active
-            else R.drawable.bg_pill_crit
+        binding.critCount.backgroundTintList = ContextCompat.getColorStateList(
+            this,
+            if (severityFilter == ScanSeverity.CRITICAL) R.color.crit_red else R.color.crit_red_bg
         )
         binding.okCount.setTextColor(
             ContextCompat.getColor(
@@ -244,6 +303,12 @@ class MainActivity : AppCompatActivity() {
             if (severityFilter == null) android.view.View.GONE
             else android.view.View.VISIBLE
 
+        binding.okCount.isEnabled = true
+        binding.warnCount.isEnabled = true
+        binding.critCount.isEnabled = true
+        binding.okCount.alpha = if (summary.okCount > 0) 1f else 0.55f
+        binding.warnCount.alpha = if (summary.warningCount > 0) 1f else 0.55f
+        binding.critCount.alpha = if (summary.criticalCount > 0) 1f else 0.55f
         binding.okCount.contentDescription = getString(
             R.string.filter_desc, summary.okCount, getString(R.string.severity_ok)
         )
@@ -299,29 +364,56 @@ class MainActivity : AppCompatActivity() {
         )
     }
 
-    private fun checkForUpdate() {
+    private fun checkForUpdate(silent: Boolean) {
         if (updating) return
-        if (UpdateChecker.GITHUB_REPO.startsWith("SEU-USUARIO")) {
-            Toast.makeText(this, R.string.update_not_configured, Toast.LENGTH_LONG).show()
-            return
-        }
         updating = true
-        Toast.makeText(this, R.string.update_checking, Toast.LENGTH_SHORT).show()
+        if (!silent) {
+            Toast.makeText(this, R.string.update_checking, Toast.LENGTH_SHORT).show()
+        }
         lifecycleScope.launch(Dispatchers.IO) {
-            val info = UpdateChecker.check(applicationContext)
+            val result = UpdateChecker.check(applicationContext)
             runOnUiThread {
                 updating = false
-                when {
-                    info == null -> Toast.makeText(
-                        this@MainActivity, R.string.update_uptodate, Toast.LENGTH_LONG
-                    ).show()
-                    else -> showUpdateDialog(info)
+                when (result) {
+                    is UpdateCheckResult.Available -> {
+                        pendingUpdate = result.info
+                        binding.btnUpdateBanner.visibility = android.view.View.VISIBLE
+                        binding.btnUpdateBanner.text = getString(
+                            R.string.update_banner, result.info.latestVersion
+                        )
+                        if (!silent) showUpdateDialog(result.info)
+                    }
+                    is UpdateCheckResult.UpToDate -> {
+                        pendingUpdate = null
+                        binding.btnUpdateBanner.visibility = android.view.View.GONE
+                        if (!silent) {
+                            Toast.makeText(
+                                this@MainActivity,
+                                getString(
+                                    R.string.update_uptodate_detail,
+                                    result.installed,
+                                    result.latest
+                                ),
+                                Toast.LENGTH_LONG
+                            ).show()
+                        }
+                    }
+                    is UpdateCheckResult.Failed -> {
+                        if (!silent) {
+                            Toast.makeText(
+                                this@MainActivity,
+                                getString(R.string.update_error) + ": " + result.reason,
+                                Toast.LENGTH_LONG
+                            ).show()
+                        }
+                    }
                 }
             }
         }
     }
 
     private fun showUpdateDialog(info: UpdateInfo) {
+        pendingUpdate = info
         val notes = info.notes.trim().ifBlank { getString(R.string.update_available) }
         AlertDialog.Builder(this)
             .setTitle("${getString(R.string.update_available)} ${info.latestVersion}")
@@ -334,12 +426,23 @@ class MainActivity : AppCompatActivity() {
     }
 
     private fun downloadAndInstall(info: UpdateInfo) {
+        if (!UpdateChecker.canInstallPackages(this)) {
+            Toast.makeText(this, R.string.update_allow_unknown, Toast.LENGTH_LONG).show()
+            UpdateChecker.requestInstallPermission(this)
+            return
+        }
         Toast.makeText(this, R.string.update_downloading, Toast.LENGTH_SHORT).show()
+        binding.btnUpdateBanner.isEnabled = false
+        binding.btnUpdateBanner.text = getString(R.string.update_downloading)
         lifecycleScope.launch(Dispatchers.IO) {
             UpdateChecker.downloadApk(
                 applicationContext, info.downloadUrl
             ) { result ->
                 runOnUiThread {
+                    binding.btnUpdateBanner.isEnabled = true
+                    binding.btnUpdateBanner.text = getString(
+                        R.string.update_banner, info.latestVersion
+                    )
                     result.onSuccess { file -> installDownloaded(file) }
                         .onFailure {
                             Toast.makeText(

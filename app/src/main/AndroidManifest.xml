@@ -18,6 +18,13 @@
         <intent>
             <action android:name="android.intent.action.MAIN" />
         </intent>
+        <package android:name="com.topjohnwu.magisk" />
+        <package android:name="io.github.vvb2060.magisk" />
+        <package android:name="io.github.huskydg.magisk" />
+        <package android:name="me.weishu.kernelsu" />
+        <package android:name="me.weishu.kernelsu.next" />
+        <package android:name="com.rifsxd.ksunext" />
+        <package android:name="eu.chainfire.supersu" />
     </queries>
 
     <application
@@ -42,6 +49,12 @@
         <activity
             android:name=".history.HistoryActivity"
             android:exported="false"
+            android:theme="@style/Theme.SysScan" />
+
+        <activity
+            android:name=".advisor.ChatActivity"
+            android:exported="false"
+            android:windowSoftInputMode="adjustResize"
             android:theme="@style/Theme.SysScan" />
 
         <provider
