@@ -44,6 +44,8 @@ object DeviceAdvisor {
                 heat(snapshot)
             matches(q, "armazen", "espaço", "storage", "cheio", "cache") ->
                 storage(snapshot)
+            matches(q, "arquivo essencial", "arquivos essenciais", "app_process", "dalvikvm", "build.prop", "reflash", "rom") ->
+                essentialFiles(snapshot)
             matches(q, "root", "magisk", "kernelsu", "su ") ->
                 root(snapshot)
             matches(q, "rede", "wifi", "internet", "dados") ->
@@ -88,6 +90,8 @@ object DeviceAdvisor {
             t.contains("armazen") || t.contains("cache") -> "apague cache e arquivos grandes; o botão Corrigir abre Armazenamento."
             t.contains("temper") || t.contains("thermal") -> "tire a capa, pause jogos e deixe esfriar."
             t.contains("rede") || t.contains("dns") -> "alterne Wi-Fi/dados ou reabra Rede nas configuracoes."
+            t.contains("arquivo essencial") || t.contains("app_process") || t.contains("build.prop") ->
+                "falso positivo comum: app_process32 não existe em celular só 64-bit; root não recria arquivo de ROM."
             t.contains("selinux") || t.contains("/system") -> "com root, use Corrigir para remount ro / setenforce 1."
             t.contains("crash") || t.contains("anr") -> "atualize ou desinstale o app que está falhando."
             else -> issue.detail.take(120)
@@ -168,6 +172,27 @@ object DeviceAdvisor {
                 "• Mova fotos/vídeos para o computador ou nuvem.\n" +
                 "• Desinstale apps que não usa.\n" +
                 "• Mantenha pelo menos 2–4 GB livres."
+        )
+        return sb.toString()
+    }
+
+    private fun essentialFiles(snapshot: ScanSnapshot?): String {
+        val found = snapshot?.issues?.filter {
+            it.title.contains("essencial", true) ||
+                it.detail.contains("app_process", true) ||
+                it.title.contains("build.prop", true)
+        }.orEmpty()
+        val sb = StringBuilder()
+        if (found.isNotEmpty()) {
+            sb.append("Na varredura: ${found.joinToString("; ") { it.detail }}\n\n")
+        }
+        sb.append(
+            "Isso quase nunca é arquivo da ROM faltando.\n" +
+                "• Celular só 64-bit não tem /system/bin/app_process32 — é normal.\n" +
+                "• A partir do Android 10, /system/bin é execute-only: o app não consegue dar stat e o check antigo marcava ausente.\n" +
+                "• Como o SysScan está aberto, o Zygote/app_process existe.\n" +
+                "• Root/Magisk não restaura binário de sistema. Não ative root por causa desse item.\n" +
+                "• Só faria sentido reinstalar a ROM se o aparelho nem ligasse."
         )
         return sb.toString()
     }

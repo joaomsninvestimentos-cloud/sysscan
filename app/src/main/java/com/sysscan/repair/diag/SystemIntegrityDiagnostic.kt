@@ -9,12 +9,10 @@ import java.io.File
 
 class SystemIntegrityDiagnostic(private val hasRoot: Boolean) {
 
-    private val essentialFiles = listOf(
+    private val buildPropPaths = listOf(
         "/system/build.prop",
-        "/system/bin/app_process",
-        "/system/bin/app_process32",
-        "/system/bin/app_process64",
-        "/system/bin/dalvikvm"
+        "/system/etc/build.prop",
+        "/vendor/build.prop"
     )
 
     fun check(): List<ScanCheck> {
@@ -101,40 +99,73 @@ class SystemIntegrityDiagnostic(private val hasRoot: Boolean) {
     }
 
     private fun checkEssentialFiles(): ScanCheck {
-        var missing = 0
-        var empty = 0
-        val details = mutableListOf<String>()
+        val abi64 = Build.SUPPORTED_64_BIT_ABIS.isNotEmpty()
+        val runtimeCandidates = if (abi64) {
+            listOf("/system/bin/app_process64", "/system/bin/app_process")
+        } else {
+            listOf("/system/bin/app_process32", "/system/bin/app_process")
+        }
 
-        for (path in essentialFiles) {
-            val f = File(path)
-            if (!f.exists()) {
-                missing++
-            } else if (f.length() == 0L) {
-                empty++
-                details.add(f.name)
+        val buildProp = buildPropPaths.firstOrNull { pathVisible(it) }
+        val runtimePath = runtimeCandidates.firstOrNull { pathVisible(it) }
+        val emptyProp = buildProp?.let { File(it).takeIf { f -> f.exists() && f.isFile && f.length() == 0L } }
+
+        if (runtimePath != null && emptyProp == null) {
+            val abiLabel = if (abi64) "64-bit" else "32-bit"
+            return ScanCheckBuilder.ok(
+                "sys_files", ScanCategory.SYSTEM, "Arquivos essenciais do sistema",
+                "Runtime $abiLabel presente (${File(runtimePath).name})" +
+                    if (buildProp != null) " e ${File(buildProp).name} visível." else "."
+            )
+        }
+
+        if (emptyProp != null) {
+            return ScanCheckBuilder.warning(
+                "sys_files", ScanCategory.SYSTEM, "build.prop vazio",
+                "${emptyProp.absolutePath} tem 0 bytes. O aparelho ainda está em execução; " +
+                    "isso não se corrige com root.",
+                "sys_reflash"
+            )
+        }
+
+        if (hasRoot) {
+            val confirm = RootChecker.executeAsRoot(
+                "if [ -x /system/bin/app_process64 ] || [ -x /system/bin/app_process32 ] || " +
+                    "[ -x /system/bin/app_process ]; then echo runtime_ok; else echo runtime_missing; fi; " +
+                    "if [ -e /system/build.prop ] || [ -e /vendor/build.prop ]; then echo prop_ok; else echo prop_missing; fi",
+                timeoutSeconds = 8
+            )
+            if (confirm.success && confirm.stdout.contains("runtime_ok")) {
+                return ScanCheckBuilder.ok(
+                    "sys_files", ScanCategory.SYSTEM, "Arquivos essenciais do sistema",
+                    "Confirmado com root: o runtime do Android está no lugar. " +
+                        "Binários 32/64-bit ausentes no ABI que o aparelho não usa são normais."
+                )
+            }
+            if (confirm.success && confirm.stdout.contains("runtime_missing")) {
+                return ScanCheckBuilder.critical(
+                    "sys_files", ScanCategory.SYSTEM, "Arquivos essenciais ausentes",
+                    "Com root, app_process não foi encontrado. Isso não se recria pelo Magisk; " +
+                        "só reinstalando a ROM/firmware do fabricante.",
+                    "sys_reflash"
+                )
             }
         }
 
-        return when {
-            missing == essentialFiles.size -> ScanCheckBuilder.critical(
-                "sys_files", ScanCategory.SYSTEM, "Arquivos essenciais ausentes",
-                "Nenhum arquivo essencial do sistema foi encontrado. O sistema pode estar " +
-                    "gravemente corrompido.", "sys_reflash"
-            )
-            missing > 0 -> ScanCheckBuilder.warning(
-                "sys_files", ScanCategory.SYSTEM, "Arquivos essenciais ausentes",
-                "$missing arquivo(s) essencial(is) do sistema não encontrados. Pode indicar " +
-                    "corrupção ou um sistema personalizado.", "sys_reflash"
-            )
-            empty > 0 -> ScanCheckBuilder.warning(
-                "sys_files", ScanCategory.SYSTEM, "Arquivos essenciais corrompidos",
-                "Arquivos com tamanho inválido (0 bytes): ${details.joinToString(", ")}.",
-                "sys_reflash"
-            )
-            else -> ScanCheckBuilder.ok(
-                "sys_files", ScanCategory.SYSTEM, "Arquivos essenciais do sistema",
-                "Os arquivos críticos do sistema estão presentes e com tamanho válido."
-            )
+        return ScanCheckBuilder.info(
+            "sys_files", ScanCategory.SYSTEM, "Arquivos essenciais do sistema",
+            "O Android bloqueia a leitura de /system/bin (execute-only). " +
+                "Como o SysScan está rodando, o Zygote/app_process existe. " +
+                "Faltar app_process32 em celular só 64-bit é normal — root não restaura isso."
+        )
+    }
+
+    private fun pathVisible(path: String): Boolean {
+        return try {
+            val f = File(path)
+            f.exists()
+        } catch (_: Exception) {
+            false
         }
     }
 

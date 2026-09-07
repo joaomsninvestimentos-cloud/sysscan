@@ -134,8 +134,8 @@ class RepairEngine(private val context: Context) {
             fixId == "memory_optimize" || fixId == "cpu_optimize" -> killBackgroundProcesses()
             fixId == "sys_reflash" -> FixResult(
                 false,
-                "A corrupção do sistema não pode ser reparada por app. Instale a ROM original " +
-                    "pelo modo de recuperação (recovery) do fabricante."
+                "Root não recria arquivo de sistema. Faltar app_process32 em celular só 64-bit " +
+                    "é normal. Reinstalar a ROM só faria sentido se o aparelho não ligasse."
             )
             else -> FixResult(false, "Ação de reparo não executável automaticamente.")
         }
