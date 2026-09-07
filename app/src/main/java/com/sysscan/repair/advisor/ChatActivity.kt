@@ -12,6 +12,7 @@ import androidx.appcompat.app.AppCompatActivity
 import androidx.core.content.ContextCompat
 import androidx.lifecycle.lifecycleScope
 import androidx.recyclerview.widget.LinearLayoutManager
+import androidx.recyclerview.widget.RecyclerView
 import com.sysscan.repair.R
 import com.sysscan.repair.databinding.ActivityChatBinding
 import com.sysscan.repair.databinding.ItemChatMessageBinding
