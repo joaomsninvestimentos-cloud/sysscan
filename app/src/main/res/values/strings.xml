@@ -23,12 +23,14 @@
     <string name="fix_running">Executando reparo…</string>
     <string name="fix_not_possible">Sem correção automática</string>
 
-    <string name="root_status_label">Status do root</string>
+    <string name="root_status_label">Avançado (opcional)</string>
     <string name="root_required_note">Alguns reparos avançados exigem acesso root.</string>
     <string name="root_requesting">Solicitando acesso root…</string>
     <string name="root_grant_hint">Autorize o SysScan no Magisk/KernelSU e toque aqui de novo.</string>
     <string name="root_granted">Acesso root concedido.</string>
     <string name="root_still_denied">Root não concedido. Abra o Magisk e permita este app.</string>
+    <string name="root_extra_hint">Root é extra opcional. O app funciona sem isso.</string>
+    <string name="root_optional_hint">Root não é necessário. Só use se o Magisk já estiver no aparelho.</string>
     <string name="root_dialog_title">Ativar root para o SysScan</string>
     <string name="root_dialog_message">O Magisk precisa autorizar este app.\n\n1. Aceite o popup Superuser do Magisk.\n2. Se não aparecer, abra o Magisk &gt; Superuser e permita o SysScan.\n3. Volte e toque de novo em Status do root.</string>
     <string name="root_dialog_grant">Pedir autorização</string>
@@ -94,5 +96,5 @@
     <string name="chat_chip_plan">O que eu faço agora?</string>
     <string name="chat_chip_battery">Melhorar bateria</string>
     <string name="chat_chip_slow">Celular lento</string>
-    <string name="chat_chip_root">Como ativar o root</string>
+    <string name="chat_chip_root">Preciso de root?</string>
 </resources>

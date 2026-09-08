@@ -10,7 +10,7 @@ object DeviceAdvisor {
                 "Você também pode perguntar, por exemplo:\n" +
                 "• Como melhorar a bateria?\n" +
                 "• O que está deixando o celular lento?\n" +
-                "• Como conceder root no Magisk?"
+                "• Como atualizar o app?"
         }
         val sb = StringBuilder()
         sb.append("Olá. Li a última varredura: saúde ${snapshot.score}")
@@ -52,8 +52,8 @@ object DeviceAdvisor {
                 network()
             matches(q, "score", "saúde", "saude", "nota") ->
                 score(snapshot)
-            matches(q, "atualizar", "update", "versão", "versao") ->
-                "Na tela inicial, toque no ícone de download no topo. O SysScan consulta a Release do GitHub (joaomsninvestimentos-cloud/sysscan) e, se houver APK mais novo, baixa e instala."
+            matches(q, "atualizar", "update", "versão", "versao", "vesel", "vercel") ->
+                "O SysScan atualiza sozinho pelo GitHub Releases. Ao abrir o app, se houver APK novo ele baixa e pede só a confirmação do Android para instalar. Vercel/vesel hospeda site, não instala APK no celular."
             else -> fallback(q, snapshot)
         }
     }
@@ -203,11 +203,9 @@ object DeviceAdvisor {
             sb.append("Root já está ativo nesta varredura. Reparos avançados (cache do sistema, SELinux, remount) ficam disponíveis.\n\n")
         } else {
             sb.append(
-                "O Magisk costuma esconder o binário su. No SysScan:\n" +
-                    "1. Toque em Status do root.\n" +
-                    "2. Aceite o popup Conceder no Magisk (Superuser).\n" +
-                    "3. Se o popup não aparecer, abra o Magisk > Superuser e permita o SysScan.\n" +
-                    "4. Volte e toque de novo no status, depois rode Nova varredura.\n\n"
+                "Root não é necessário. O SysScan diagnostica e sugere correções sem Magisk.\n" +
+                    "Só aparece se você já tiver Magisk/KernelSU e quiser extra (cache do sistema, TRIM).\n" +
+                    "Não ative root por causa deste app.\n\n"
             )
         }
         sb.append("Com root o app faz análise profunda: kernel, sensores térmicos, swap, governadores, zumbis, TRIM e partições.")

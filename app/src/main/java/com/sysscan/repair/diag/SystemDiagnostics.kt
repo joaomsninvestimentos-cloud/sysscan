@@ -49,8 +49,7 @@ class SystemDiagnostics(private val context: Context, private val hasRoot: Boole
                 else listOf(
                     ScanCheckBuilder.info(
                         "deep_root_unavailable", ScanCategory.SYSTEM, "Análise profunda",
-                        "Esta análise exige acesso root. Desbloqueie o bootloader e instale " +
-                            "Magisk/KernelSU para verificação avançada."
+                        "Opcional. Sem root o diagnóstico normal já cobre bateria, RAM, armazenamento e apps."
                     )
                 )
             }

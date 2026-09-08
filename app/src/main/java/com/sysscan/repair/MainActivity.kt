@@ -1,13 +1,10 @@
 package com.sysscan.repair
 
-import android.Manifest
 import android.content.Intent
-import android.content.pm.PackageManager
 import android.content.res.Configuration
-import android.os.Build
 import android.os.Bundle
+import android.view.View
 import android.widget.Toast
-import androidx.activity.result.contract.ActivityResultContracts
 import androidx.activity.viewModels
 import androidx.appcompat.app.AlertDialog
 import androidx.appcompat.app.AppCompatActivity
@@ -23,7 +20,6 @@ import com.sysscan.repair.history.HistoryActivity
 import com.sysscan.repair.model.ScanCheck
 import com.sysscan.repair.model.ScanSeverity
 import com.sysscan.repair.model.ScanSummary
-import com.sysscan.repair.root.RootPrompt
 import com.sysscan.repair.updater.UpdateCheckResult
 import com.sysscan.repair.updater.UpdateChecker
 import com.sysscan.repair.updater.UpdateInfo
@@ -40,15 +36,9 @@ class MainActivity : AppCompatActivity() {
     private var severityFilter: ScanSeverity? = null
     private var lastSummary: ScanSummary? = null
     private var pendingUpdate: UpdateInfo? = null
-    private var rootDialogVisible = false
-    private var askedNotifyPermission = false
-    private var autoRootPromptShown = false
-
-    private val notifyPermission = registerForActivityResult(
-        ActivityResultContracts.RequestPermission()
-    ) { granted ->
-        if (granted) RootPrompt.show(this, openManager = false)
-    }
+    private var downloadedApk: File? = null
+    private var rootExtraVisible = false
+    private var autoDownloadStarted = false
 
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
@@ -75,23 +65,27 @@ class MainActivity : AppCompatActivity() {
         binding.critCount.setOnClickListener { toggleFilter(ScanSeverity.CRITICAL) }
         binding.btnFilterClear.setOnClickListener { toggleFilter(null) }
         binding.btnUpdateBanner.setOnClickListener {
-            pendingUpdate?.let { showUpdateDialog(it) } ?: checkForUpdate(silent = false)
+            pendingUpdate?.let { continueUpdate(it) } ?: checkForUpdate(silent = false)
         }
+        binding.scoreCard.setOnLongClickListener {
+            revealRootExtra()
+            true
+        }
+        binding.rootCard.visibility = View.GONE
 
         updateDarkToggleIcon()
         observeState()
-        RootPrompt.ensureChannel(this)
         checkForUpdate(silent = true)
-        if (intent.getBooleanExtra(RootPrompt.EXTRA_REQUEST_ROOT, false)) {
-            onRootStatusClicked()
-        }
     }
 
-    override fun onNewIntent(intent: Intent) {
-        super.onNewIntent(intent)
-        setIntent(intent)
-        if (intent.getBooleanExtra(RootPrompt.EXTRA_REQUEST_ROOT, false)) {
-            onRootStatusClicked()
+    override fun onResume() {
+        super.onResume()
+        pendingUpdate?.let { info ->
+            if (downloadedApk?.exists() == true && UpdateChecker.canInstallPackages(this)) {
+                installDownloaded(downloadedApk!!)
+            } else if (downloadedApk == null && !updating) {
+                continueUpdate(info)
+            }
         }
     }
 
@@ -129,7 +123,11 @@ class MainActivity : AppCompatActivity() {
                                 if (granted) R.color.ok_green else R.color.warn_amber
                             )
                         )
-                        if (granted) RootPrompt.cancel(this@MainActivity)
+                        if (granted) {
+                            binding.rootCard.visibility = View.VISIBLE
+                        } else if (!rootExtraVisible) {
+                            binding.rootCard.visibility = View.GONE
+                        }
                     }
                 }
                 launch {
@@ -232,71 +230,22 @@ class MainActivity : AppCompatActivity() {
         renderFilterPills(summary)
         renderEmptyFilterMessage()
         adapter.submit(summary.checks, fixResults)
-        if (!summary.hasRoot && !autoRootPromptShown) {
-            autoRootPromptShown = true
-            maybePromptRoot()
-        }
     }
 
-    private fun maybePromptRoot() {
-        val status = viewModel.lastRootStatus.value
-        if (status?.hasRoot == true) return
-        showRootPrompt(openManager = false)
+    private fun revealRootExtra() {
+        rootExtraVisible = true
+        binding.rootCard.visibility = View.VISIBLE
+        Toast.makeText(this, R.string.root_extra_hint, Toast.LENGTH_LONG).show()
     }
 
     private fun onRootStatusClicked() {
         val current = viewModel.lastRootStatus.value
         if (current?.hasRoot == true) {
-            RootPrompt.cancel(this)
             Toast.makeText(this, R.string.root_granted, Toast.LENGTH_SHORT).show()
             return
         }
-        showRootPrompt(openManager = true)
+        Toast.makeText(this, R.string.root_optional_hint, Toast.LENGTH_LONG).show()
         viewModel.refreshRoot(force = true)
-    }
-
-    private fun showRootPrompt(openManager: Boolean) {
-        requestNotifyPermission()
-        RootPrompt.show(this, openManager = false)
-        if (rootDialogVisible) return
-        rootDialogVisible = true
-        AlertDialog.Builder(this)
-            .setTitle(R.string.root_dialog_title)
-            .setMessage(R.string.root_dialog_message)
-            .setPositiveButton(R.string.root_dialog_grant) { _, _ ->
-                rootDialogVisible = false
-                Toast.makeText(this, R.string.root_requesting, Toast.LENGTH_SHORT).show()
-                viewModel.refreshRoot(force = true)
-            }
-            .setNeutralButton(R.string.root_dialog_open_magisk) { _, _ ->
-                rootDialogVisible = false
-                com.sysscan.repair.root.RootChecker.openManager(this)
-            }
-            .setNegativeButton(android.R.string.cancel) { _, _ ->
-                rootDialogVisible = false
-            }
-            .setOnDismissListener { rootDialogVisible = false }
-            .show()
-        if (openManager) {
-            binding.rootRow.postDelayed({
-                if (viewModel.lastRootStatus.value?.hasRoot != true) {
-                    com.sysscan.repair.root.RootChecker.openManager(this)
-                }
-            }, 1200)
-        }
-    }
-
-    private fun requestNotifyPermission() {
-        if (askedNotifyPermission) return
-        if (Build.VERSION.SDK_INT < Build.VERSION_CODES.TIRAMISU) return
-        if (RootPrompt.canNotify(this)) return
-        askedNotifyPermission = true
-        if (ContextCompat.checkSelfPermission(
-                this, Manifest.permission.POST_NOTIFICATIONS
-            ) != PackageManager.PERMISSION_GRANTED
-        ) {
-            notifyPermission.launch(Manifest.permission.POST_NOTIFICATIONS)
-        }
     }
 
     private fun toggleFilter(severity: ScanSeverity?) {
@@ -456,7 +405,8 @@ class MainActivity : AppCompatActivity() {
                         binding.btnUpdateBanner.text = getString(
                             R.string.update_banner, result.info.latestVersion
                         )
-                        if (!silent) showUpdateDialog(result.info)
+                        if (silent) continueUpdate(result.info)
+                        else showUpdateDialog(result.info)
                     }
                     is UpdateCheckResult.UpToDate -> {
                         pendingUpdate = null
@@ -494,18 +444,26 @@ class MainActivity : AppCompatActivity() {
             .setTitle("${getString(R.string.update_available)} ${info.latestVersion}")
             .setMessage(notes)
             .setPositiveButton(R.string.update_download_install) { _, _ ->
-                downloadAndInstall(info)
+                continueUpdate(info)
             }
             .setNegativeButton(R.string.update_later, null)
             .show()
     }
 
-    private fun downloadAndInstall(info: UpdateInfo) {
+    private fun continueUpdate(info: UpdateInfo) {
+        pendingUpdate = info
         if (!UpdateChecker.canInstallPackages(this)) {
             Toast.makeText(this, R.string.update_allow_unknown, Toast.LENGTH_LONG).show()
             UpdateChecker.requestInstallPermission(this)
             return
         }
+        val ready = downloadedApk
+        if (ready != null && ready.exists()) {
+            installDownloaded(ready)
+            return
+        }
+        if (autoDownloadStarted) return
+        autoDownloadStarted = true
         Toast.makeText(this, R.string.update_downloading, Toast.LENGTH_SHORT).show()
         binding.btnUpdateBanner.isEnabled = false
         binding.btnUpdateBanner.text = getString(R.string.update_downloading)
@@ -514,17 +472,20 @@ class MainActivity : AppCompatActivity() {
                 applicationContext, info.downloadUrl
             ) { result ->
                 runOnUiThread {
+                    autoDownloadStarted = false
                     binding.btnUpdateBanner.isEnabled = true
                     binding.btnUpdateBanner.text = getString(
                         R.string.update_banner, info.latestVersion
                     )
-                    result.onSuccess { file -> installDownloaded(file) }
-                        .onFailure {
-                            Toast.makeText(
-                                this@MainActivity,
-                                R.string.update_download_failed, Toast.LENGTH_LONG
-                            ).show()
-                        }
+                    result.onSuccess { file ->
+                        downloadedApk = file
+                        installDownloaded(file)
+                    }.onFailure {
+                        Toast.makeText(
+                            this@MainActivity,
+                            R.string.update_download_failed, Toast.LENGTH_LONG
+                        ).show()
+                    }
                 }
             }
         }
