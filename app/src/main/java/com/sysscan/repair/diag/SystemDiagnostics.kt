@@ -4,9 +4,8 @@ import android.content.Context
 import com.sysscan.repair.model.ScanCheck
 import com.sysscan.repair.model.ScanCheckBuilder
 import com.sysscan.repair.model.ScanCategory
-import com.sysscan.repair.root.RootChecker
 
-class SystemDiagnostics(private val context: Context, private val hasRoot: Boolean) {
+class SystemDiagnostics(private val context: Context) {
 
     fun runAll(onProgress: (done: Int, total: Int, label: String) -> Unit): List<ScanCheck> {
         val checks = mutableListOf<ScanCheck>()
@@ -18,7 +17,7 @@ class SystemDiagnostics(private val context: Context, private val hasRoot: Boole
                 MemoryDiagnostic(context).check()
             },
             "Verificando armazenamento" to {
-                StorageDiagnostic(context, hasRoot).check()
+                StorageDiagnostic(context).check()
             },
             "Verificando rede" to {
                 NetworkDiagnostic(context).check()
@@ -42,16 +41,7 @@ class SystemDiagnostics(private val context: Context, private val hasRoot: Boole
                 PackageIntegrityDiagnostic(context).check()
             },
             "Verificando integridade do sistema" to {
-                SystemIntegrityDiagnostic(hasRoot).check()
-            },
-            "Análise profunda (root)" to {
-                if (hasRoot) RootDeepDiagnostic().check()
-                else listOf(
-                    ScanCheckBuilder.info(
-                        "deep_root_unavailable", ScanCategory.SYSTEM, "Análise profunda",
-                        "Opcional. Sem root o diagnóstico normal já cobre bateria, RAM, armazenamento e apps."
-                    )
-                )
+                SystemIntegrityDiagnostic().check()
             }
         )
 
@@ -72,6 +62,4 @@ class SystemDiagnostics(private val context: Context, private val hasRoot: Boole
         onProgress(totalModules, totalModules, "Varredura concluída")
         return checks
     }
-
-    fun rootStatus(): Boolean = hasRoot && RootChecker.hasRootAccess()
 }

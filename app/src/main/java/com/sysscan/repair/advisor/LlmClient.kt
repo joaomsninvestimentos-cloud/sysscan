@@ -69,7 +69,7 @@ object LlmClient {
             "Ainda não há varredura salva."
         } else {
             buildString {
-                append("Score ${snapshot.score}. Root=${snapshot.hasRoot}. ")
+                append("Score ${snapshot.score}. ")
                 append("OK=${snapshot.ok} Atenção=${snapshot.warning} Crítico=${snapshot.critical}. ")
                 if (snapshot.issues.isNotEmpty()) {
                     append("Problemas: ")
@@ -82,6 +82,6 @@ object LlmClient {
         return "Você é o assistente do app Android SysScan. Responda em português, curto e prático. " +
             "Ajude a melhorar bateria, RAM, calor, armazenamento e estabilidade. " +
             "Não invente arquivos de sistema que o app não consegue restaurar. " +
-            "Não peça root se não for necessário. Dados da última varredura: $scan"
+            "Dados da última varredura: $scan"
     }
 }

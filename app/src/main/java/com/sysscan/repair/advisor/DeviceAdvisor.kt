@@ -13,9 +13,7 @@ object DeviceAdvisor {
                 "• Como atualizar o app?"
         }
         val sb = StringBuilder()
-        sb.append("Olá. Li a última varredura: saúde ${snapshot.score}")
-        if (snapshot.hasRoot) sb.append(", com root ativo")
-        sb.append(".\n\n")
+        sb.append("Olá. Li a última varredura: saúde ${snapshot.score}.\n\n")
         if (snapshot.issues.isEmpty()) {
             sb.append("Nenhum ponto crítico agora. Posso sugerir hábitos para manter bateria, RAM e armazenamento saudáveis. O que você quer melhorar?")
         } else {
@@ -31,7 +29,7 @@ object DeviceAdvisor {
 
     fun answer(question: String, snapshot: ScanSnapshot?): String {
         val q = question.lowercase().trim()
-        if (q.isBlank()) return "Pode perguntar sobre bateria, lentidão, aquecimento, armazenamento ou root."
+        if (q.isBlank()) return "Pode perguntar sobre bateria, lentidão, aquecimento, armazenamento ou rede."
 
         return when {
             matches(q, "o que eu faço", "o que fazer", "prioridade", "agora", "melhorar tudo", "plano") ->
@@ -46,8 +44,6 @@ object DeviceAdvisor {
                 storage(snapshot)
             matches(q, "arquivo essencial", "arquivos essenciais", "app_process", "dalvikvm", "build.prop", "reflash", "rom") ->
                 essentialFiles(snapshot)
-            matches(q, "root", "magisk", "kernelsu", "su ") ->
-                root(snapshot)
             matches(q, "rede", "wifi", "internet", "dados") ->
                 network()
             matches(q, "score", "saúde", "saude", "nota") ->
@@ -76,9 +72,6 @@ object DeviceAdvisor {
         snapshot.issues.take(6).forEachIndexed { i, issue ->
             sb.append("${i + 1}. ${issue.title} — ${shortTip(issue)}\n")
         }
-        if (!snapshot.hasRoot) {
-            sb.append("\nSem root, o SysScan não consegue limpar caches do sistema nem ajustar SELinux. Você ainda pode corrigir o que o Android permite pelo botão Corrigir.")
-        }
         return sb.toString()
     }
 
@@ -91,8 +84,7 @@ object DeviceAdvisor {
             t.contains("temper") || t.contains("thermal") -> "tire a capa, pause jogos e deixe esfriar."
             t.contains("rede") || t.contains("dns") -> "alterne Wi-Fi/dados ou reabra Rede nas configuracoes."
             t.contains("arquivo essencial") || t.contains("app_process") || t.contains("build.prop") ->
-                "falso positivo comum: app_process32 não existe em celular só 64-bit; root não recria arquivo de ROM."
-            t.contains("selinux") || t.contains("/system") -> "com root, use Corrigir para remount ro / setenforce 1."
+                "falso positivo comum: app_process32 não existe em celular só 64-bit."
             t.contains("crash") || t.contains("anr") -> "atualize ou desinstale o app que está falhando."
             else -> issue.detail.take(120)
         }
@@ -132,8 +124,7 @@ object DeviceAdvisor {
             "Para o aparelho ficar mais fluido:\n" +
                 "• Feche apps de redes sociais, jogos e navegador em segundo plano.\n" +
                 "• No SysScan, use Corrigir no item de memória (encerra processos pesados).\n" +
-                "• Evite launchers e temas com animação pesada.\n" +
-                "• Se tiver root, a análise profunda também limpa caches e sincroniza o sistema de arquivos."
+                "• Evite launchers e temas com animação pesada."
         )
         return sb.toString()
     }
@@ -151,8 +142,7 @@ object DeviceAdvisor {
             "Aquecimento acelera desgaste da bateria e o sistema reduz o desempenho.\n" +
                 "• Pause jogos e recarga rápida ao mesmo tempo.\n" +
                 "• Tire a capa por alguns minutos.\n" +
-                "• Evite sol direto e carregador genérico que aquece.\n" +
-                "• Se o CPU estiver em modo performance (visto só com root), volte para o governador padrão."
+                "• Evite sol direto e carregador genérico que aquece."
         )
         return sb.toString()
     }
@@ -168,7 +158,7 @@ object DeviceAdvisor {
         }
         sb.append(
             "Armazenamento cheio deixa o Android lento e impede atualizações.\n" +
-                "• Apague cache pelo botão Corrigir (ou, com root, trim-caches).\n" +
+                "• Apague cache e arquivos grandes pelo botão Corrigir (abre Armazenamento).\n" +
                 "• Mova fotos/vídeos para o computador ou nuvem.\n" +
                 "• Desinstale apps que não usa.\n" +
                 "• Mantenha pelo menos 2–4 GB livres."
@@ -191,24 +181,8 @@ object DeviceAdvisor {
                 "• Celular só 64-bit não tem /system/bin/app_process32 — é normal.\n" +
                 "• A partir do Android 10, /system/bin é execute-only: o app não consegue dar stat e o check antigo marcava ausente.\n" +
                 "• Como o SysScan está aberto, o Zygote/app_process existe.\n" +
-                "• Root/Magisk não restaura binário de sistema. Não ative root por causa desse item.\n" +
                 "• Só faria sentido reinstalar a ROM se o aparelho nem ligasse."
         )
-        return sb.toString()
-    }
-
-    private fun root(snapshot: ScanSnapshot?): String {
-        val sb = StringBuilder()
-        if (snapshot?.hasRoot == true) {
-            sb.append("Root já está ativo nesta varredura. Reparos avançados (cache do sistema, SELinux, remount) ficam disponíveis.\n\n")
-        } else {
-            sb.append(
-                "Root não é necessário. O SysScan diagnostica e sugere correções sem Magisk.\n" +
-                    "Só aparece se você já tiver Magisk/KernelSU e quiser extra (cache do sistema, TRIM).\n" +
-                    "Não ative root por causa deste app.\n\n"
-            )
-        }
-        sb.append("Com root o app faz análise profunda: kernel, sensores térmicos, swap, governadores, zumbis, TRIM e partições.")
         return sb.toString()
     }
 
@@ -237,7 +211,7 @@ object DeviceAdvisor {
                 related.joinToString("\n") { "• ${it.title}: ${it.detail}" } +
                 "\n\nSe quiser, peça o plano: \"o que eu faço agora?\""
         }
-        return "Posso ajudar com bateria, lentidão, aquecimento, espaço, rede, score e root. " +
+        return "Posso ajudar com bateria, lentidão, aquecimento, espaço, rede e score. " +
             "Pergunte com essas palavras, ou peça o plano de melhoria."
     }
 }

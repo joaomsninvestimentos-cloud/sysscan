@@ -6,13 +6,9 @@ import android.os.StatFs
 import com.sysscan.repair.model.ScanCategory
 import com.sysscan.repair.model.ScanCheck
 import com.sysscan.repair.model.ScanCheckBuilder
-import com.sysscan.repair.root.RootChecker
 import com.sysscan.repair.util.Formatters
 
-class StorageDiagnostic(
-    private val context: Context,
-    private val hasRoot: Boolean
-) {
+class StorageDiagnostic(private val context: Context) {
 
     fun check(): List<ScanCheck> {
         val results = mutableListOf<ScanCheck>()
@@ -34,8 +30,7 @@ class StorageDiagnostic(
             ))
         }
 
-        results.add(checkAppCache(hasRoot))
-        results.add(checkFsync())
+        results.add(checkAppCache())
 
         return results
     }
@@ -74,69 +69,24 @@ class StorageDiagnostic(
         }
     }
 
-    private fun checkAppCache(hasRoot: Boolean): ScanCheck {
+    private fun checkAppCache(): ScanCheck {
         val ownCache = try {
             context.cacheDir.walkTopDown().filter { it.isFile }.sumOf { it.length() }
         } catch (_: Exception) {
             0L
         }
 
-        if (!hasRoot) {
-            val threshold = 300L * 1024 * 1024
-            return if (ownCache > threshold) {
-                ScanCheckBuilder.warning(
-                    "storage_cache", ScanCategory.STORAGE, "Cache do app elevado",
-                    "Este app acumulou ${Formatters.bytes(ownCache)} em cache. " +
-                        "Sem root, limpe manualmente em Configurações.", "storage_clean"
-                )
-            } else {
-                ScanCheckBuilder.ok(
-                    "storage_cache", ScanCategory.STORAGE, "Cache de aplicativos",
-                    "Cache deste app: ${Formatters.bytes(ownCache)}. Para medir todos os apps é necessário root."
-                )
-            }
-        }
-
-        val totalCache = totalSystemCache()
-        return when {
-            totalCache <= 0L -> ScanCheckBuilder.info(
-                "storage_cache", ScanCategory.STORAGE, "Cache de aplicativos",
-                "Não foi possível medir o cache dos apps."
-            )
-            totalCache > 500L * 1024 * 1024 -> ScanCheckBuilder.warning(
-                "storage_cache", ScanCategory.STORAGE, "Cache de apps elevado",
-                "Os apps acumularam ${Formatters.bytes(totalCache)} em cache, ocupando espaço " +
-                    "e podendo causar lentidão.", "storage_clean_root"
-            )
-            else -> ScanCheckBuilder.ok(
-                "storage_cache", ScanCategory.STORAGE, "Cache de aplicativos",
-                "${Formatters.bytes(totalCache)} em cache. Dentro do esperado."
-            )
-        }
-    }
-
-    private fun totalSystemCache(): Long {
-        val result = RootChecker.executeAsRoot(
-            "du -cs /data/data/*/cache /data/user/*/*/cache 2>/dev/null | tail -n 1",
-            timeoutSeconds = 20
-        )
-        if (!result.success) return -1L
-        val lastLine = result.stdout.lines().lastOrNull()?.trim() ?: return -1L
-        val kb = lastLine.substringBefore('\t').toLongOrNull() ?: return -1L
-        return kb * 1024
-    }
-
-    private fun checkFsync(): ScanCheck {
-        val result = RootChecker.executeAsRoot("sync && echo ok", timeoutSeconds = 10)
-        return if (result.success) {
-            ScanCheckBuilder.ok(
-                "storage_fs", ScanCategory.STORAGE, "Integridade do sistema de arquivos",
-                "Sincronização do sistema de arquivos concluída."
+        val threshold = 300L * 1024 * 1024
+        return if (ownCache > threshold) {
+            ScanCheckBuilder.warning(
+                "storage_cache", ScanCategory.STORAGE, "Cache do app elevado",
+                "Este app acumulou ${Formatters.bytes(ownCache)} em cache. " +
+                    "Limpe manualmente em Configurações > Armazenamento.", "storage_clean"
             )
         } else {
-            ScanCheckBuilder.info(
-                "storage_fs", ScanCategory.STORAGE, "Integridade do sistema de arquivos",
-                "Não foi possível sincronizar (requer root): ${result.stdout}"
+            ScanCheckBuilder.ok(
+                "storage_cache", ScanCategory.STORAGE, "Cache de aplicativos",
+                "Cache deste app: ${Formatters.bytes(ownCache)}. Dentro do esperado."
             )
         }
     }

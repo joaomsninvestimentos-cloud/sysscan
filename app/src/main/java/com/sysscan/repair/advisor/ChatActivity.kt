@@ -53,7 +53,6 @@ class ChatActivity : AppCompatActivity() {
         binding.chipPlan.setOnClickListener { sendText(getString(R.string.chat_chip_plan)) }
         binding.chipBattery.setOnClickListener { sendText(getString(R.string.chat_chip_battery)) }
         binding.chipSlow.setOnClickListener { sendText(getString(R.string.chat_chip_slow)) }
-        binding.chipRoot.setOnClickListener { sendText(getString(R.string.chat_chip_root)) }
 
         refreshModeLabel()
         addBot(DeviceAdvisor.greeting(snapshot))

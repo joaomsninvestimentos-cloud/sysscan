@@ -19,14 +19,6 @@ enum class ScanCategory {
     SECURITY
 }
 
-data class FixAction(
-    val id: String,
-    val label: String,
-    val requiresRoot: Boolean = false,
-    val isCommand: Boolean = false,
-    val command: String = ""
-)
-
 data class ScanCheck(
     val id: String,
     val category: ScanCategory,
@@ -46,10 +38,8 @@ data class ScanReport(
 
 data class ScanSummary(
     val checks: List<ScanCheck>,
-    val hasRoot: Boolean,
     val startedAt: Long,
-    val finishedAt: Long,
-    val rootRepairAvailable: Boolean
+    val finishedAt: Long
 ) {
     val score: Int
         get() {

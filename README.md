@@ -1,8 +1,8 @@
-# SysScan — Varredura e Reparo do Sistema Android
+# SysScan — Análise e Diagnóstico do Sistema Android
 
 Aplicativo Android nativo (Kotlin) inspirado no `sfc /scannow` do Windows. Ele varre o
-aparelho em busca de instabilidades do sistema operacional, gera um "score de saúde"
-e oferece ações de correção — incluindo recursos avançados que usam **root**.
+aparelho em busca de instabilidades do sistema operacional, gera um "score de saúde" e
+oferece ações de correção seguras — **tudo sem root**.
 
 ## Funcionalidades
 
@@ -10,7 +10,7 @@ e oferece ações de correção — incluindo recursos avançados que usam **roo
 - **Bateria**: nível, temperatura e saúde (via `BatteryManager` / `ACTION_BATTERY_CHANGED`)
 - **Memória**: memória disponível, baixa memória do sistema e pressão dos processos
 - **Processos pesados**: detecção de processos consumindo memória excessiva (acima de 300 MB)
-- **Armazenamento**: espaço interno e externo, tamanho do cache
+- **Armazenamento**: espaço interno e externo, tamanho do cache do app
 - **Rede**: conectividade, tipo de rede e resolução de DNS
 - **CPU**: uso de CPU entre amostras de `/proc/stat`
 - **Sensores**: presença dos sensores principais
@@ -18,28 +18,19 @@ e oferece ações de correção — incluindo recursos avançados que usam **roo
 - **Consumo de bateria por app**: via `UsageStatsManager` (requer acesso ao uso)
 - **Integridade dos pacotes**: detecção de apps instalados com APK ausente/corrompido
 - **Falhas recentes**: crashes e ANRs das últimas 24h via `DropBoxManager`
-- **Integridade do sistema**: estado de montagem de `/system`, SELinux, arquivos essenciais
-
-### Detecção refinada de root
-O app identifica qual método de root está em uso e mostra no status:
-- **Magisk** (com número de versão), **KernelSU**, **SuperSU** ou outro — inclusive app oculto/renomeado
-- Toque em **Status do root** para disparar o pedido de permissão no Magisk
-- Presença de **BusyBox** e quantidade de **módulos ativos**
-- Suspeita de **root oculto** (ex.: Shamiko) quando há pistas de Magisk sem acesso confirmado
+- **Integridade do sistema**: estado de montagem de `/system`, SELinux e arquivos essenciais
 
 ### Filtros OK / Atenção / Crítico
-Os contadores são botões: toque em **Atenção** ou **Crítico** para filtrar e ir direto ao primeiro item daquele tipo. Toque de novo para voltar à lista completa.
+Os contadores são botões: toque em **Atenção** ou **Crítico** para filtrar e ir direto ao
+primeiro item daquele tipo. Toque de novo para voltar à lista completa.
 
 ### Reparo
-Ações executáveis pelo app (individuais ou em **lote** — "Corrigir tudo"):
+Todas as ações são executáveis pelo próprio app, sem privilégios especiais:
 - Abrir configurações de bateria, armazenamento, rede, apps e acesso ao uso
 - Otimizar memória / encerrar processos em segundo plano
 
-Ações que exigem **root**:
-- Limpar caches dos apps (`pm trim-caches`)
-- Restaurar proteção da partição `/system` (`mount -o remount,ro`)
-- Restaurar SELinux para `Enforcing` (`setenforce 1`)
-- Sincronização do sistema de arquivos (`sync`)
+As ações que exigem intervenção manual (como reinstalar a ROM) são apenas indicadas, sem
+execução automática.
 
 ### Histórico e dark mode
 - **Histórico de varreduras**: as 20 últimas varreduras são salvas com score, contagens e
@@ -54,7 +45,7 @@ O fluxo CI/CD está em `DEPLOY.md`.
 
 ### Assistente (chat)
 Ícone de conversa no topo. Lê a última varredura e responde com um plano de melhoria
-(bateria, lentidão, calor, espaço, root). Funciona **offline**. Opcionalmente, no
+(bateria, lentidão, calor, espaço, rede). Funciona **offline**. Opcionalmente, no
 próprio chat, cole sua chave `USER_LLM_API_KEY` (API compatível com OpenAI, ex. DeepSeek)
 para respostas mais livres.
 
@@ -68,6 +59,7 @@ como o Windows oferece ao `sfc`. Portanto:
   recuperação (recovery) ou via atualização OTA.
 - O app **identifica** sinais de instabilidade e oferece os reparos possíveis de forma
   segura, sem apagar dados do usuário.
+- O SysScan **não requer e não solicita acesso root**.
 
 ## Estrutura do projeto
 
@@ -92,8 +84,6 @@ app/src/main/java/com/sysscan/repair/
 │   ├── PackageIntegrityDiagnostic.kt  # Pacotes corrompidos
 │   ├── CrashDiagnostic.kt
 │   └── SystemIntegrityDiagnostic.kt
-├── root/
-│   └── RootChecker.kt           # Detecção de método de root, Magisk/KernelSU, BusyBox, módulos
 ├── repair/
 │   └── RepairEngine.kt          # Registro e execução das ações de reparo
 ├── advisor/
@@ -132,10 +122,10 @@ usado para assinar o APK de produção:
 zipalign -f 4 app/build/outputs/apk/release/app-release-unsigned.apk dist/app-aligned.apk
 apksigner sign --ks release.keystore --ks-key-alias sysscan \
   --ks-pass pass:sysscan123 --key-pass pass:sysscan123 \
-  --out dist/SysScan-v1.0-release.apk dist/app-aligned.apk
+  --out dist/SysScan-v3.0-release.apk dist/app-aligned.apk
 ```
 
-O APK assinado fica em `dist/SysScan-v1.1-release.apk` e já pode ser instalado.
+O APK assinado fica em `dist/SysScan-v3.0-release.apk` e já pode ser instalado.
 
 > Em um projeto de produção, use seu próprio keystore e não o versione no git.
 
@@ -164,3 +154,4 @@ O APK assinado fica em `dist/SysScan-v1.1-release.apk` e já pode ser instalado.
 - Kotlin 1.9.24, Android Gradle Plugin 8.3.2, Gradle 8.7
 - compileSdk 34, targetSdk 34, minSdk 24 (Android 7.0+)
 - Material Components, ViewModel + StateFlow, Coroutines, ViewBinding
+- Versão atual: 3.0 (sem root)

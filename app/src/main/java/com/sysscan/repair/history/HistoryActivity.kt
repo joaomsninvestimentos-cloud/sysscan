@@ -62,7 +62,6 @@ private class HistoryAdapter(
             append("OK ${e.ok}")
             if (e.warning > 0) append(" · ${e.warning} atenção")
             if (e.critical > 0) append(" · ${e.critical} crítico")
-            if (e.hasRoot) append(" · root")
         }
         b.historyScore.setTextColor(
             when {

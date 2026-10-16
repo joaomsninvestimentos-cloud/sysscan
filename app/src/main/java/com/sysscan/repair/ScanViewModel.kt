@@ -10,8 +10,6 @@ import com.sysscan.repair.model.ScanCheck
 import com.sysscan.repair.model.ScanSummary
 import com.sysscan.repair.repair.FixResult
 import com.sysscan.repair.repair.RepairEngine
-import com.sysscan.repair.root.RootChecker
-import com.sysscan.repair.root.RootStatus
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.delay
 import kotlinx.coroutines.flow.MutableStateFlow
@@ -34,52 +32,26 @@ class ScanViewModel(application: Application) : AndroidViewModel(application) {
     private val _uiState = MutableStateFlow<ScanUiState>(ScanUiState.Idle)
     val uiState: StateFlow<ScanUiState> = _uiState.asStateFlow()
 
-    private val _rootInfo = MutableStateFlow<String>("")
-    val rootInfo: StateFlow<String> = _rootInfo.asStateFlow()
-
     private val _fixingAll = MutableStateFlow(false)
     val fixingAll: StateFlow<Boolean> = _fixingAll.asStateFlow()
 
-    private val _lastRootStatus = MutableStateFlow<RootStatus?>(null)
-    val lastRootStatus: StateFlow<RootStatus?> = _lastRootStatus.asStateFlow()
-
     private val repairEngine = RepairEngine(application)
-
-    init {
-        _rootInfo.value = "Verificando root…"
-        refreshRoot(force = false)
-    }
-
-    fun refreshRoot(force: Boolean = true) {
-        viewModelScope.launch(Dispatchers.Default) {
-            if (force) _rootInfo.value = "Solicitando acesso root…"
-            val status = RootChecker.status(getApplication(), force)
-            _lastRootStatus.value = status
-            _rootInfo.value = status.describe()
-        }
-    }
 
     fun startScan() {
         if (_uiState.value is ScanUiState.Scanning) return
         _uiState.value = ScanUiState.Scanning(0, 0, "Iniciando varredura...")
         viewModelScope.launch(Dispatchers.Default) {
             try {
-                val rootStatus = RootChecker.status(getApplication(), force = false)
-                _lastRootStatus.value = rootStatus
-                _rootInfo.value = rootStatus.describe()
-                val hasRoot = rootStatus.hasRoot
                 val started = System.currentTimeMillis()
-                val diagnostics = SystemDiagnostics(getApplication(), hasRoot)
+                val diagnostics = SystemDiagnostics(getApplication())
                 val checks = diagnostics.runAll { done, total, label ->
                     _uiState.value = ScanUiState.Scanning(done, total, label)
                 }
                 val finished = System.currentTimeMillis()
                 val summary = ScanSummary(
                     checks = checks,
-                    hasRoot = hasRoot,
                     startedAt = started,
-                    finishedAt = finished,
-                    rootRepairAvailable = hasRoot
+                    finishedAt = finished
                 )
                 _uiState.value = ScanUiState.Done(summary)
                 ScanHistoryStore.add(getApplication(), summary)

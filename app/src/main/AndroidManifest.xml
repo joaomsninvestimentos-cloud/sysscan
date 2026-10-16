@@ -15,19 +15,6 @@
     <uses-permission android:name="android.permission.REQUEST_INSTALL_PACKAGES" />
     <uses-permission android:name="android.permission.POST_NOTIFICATIONS" />
 
-    <queries>
-        <intent>
-            <action android:name="android.intent.action.MAIN" />
-        </intent>
-        <package android:name="com.topjohnwu.magisk" />
-        <package android:name="io.github.vvb2060.magisk" />
-        <package android:name="io.github.huskydg.magisk" />
-        <package android:name="me.weishu.kernelsu" />
-        <package android:name="me.weishu.kernelsu.next" />
-        <package android:name="com.rifsxd.ksunext" />
-        <package android:name="eu.chainfire.supersu" />
-    </queries>
-
     <application
         android:allowBackup="true"
         android:icon="@mipmap/ic_launcher"

@@ -3,7 +3,6 @@ package com.sysscan.repair
 import android.content.Intent
 import android.content.res.Configuration
 import android.os.Bundle
-import android.view.View
 import android.widget.Toast
 import androidx.activity.viewModels
 import androidx.appcompat.app.AlertDialog
@@ -37,7 +36,6 @@ class MainActivity : AppCompatActivity() {
     private var lastSummary: ScanSummary? = null
     private var pendingUpdate: UpdateInfo? = null
     private var downloadedApk: File? = null
-    private var rootExtraVisible = false
     private var autoDownloadStarted = false
 
     override fun onCreate(savedInstanceState: Bundle?) {
@@ -59,7 +57,6 @@ class MainActivity : AppCompatActivity() {
             startActivity(Intent(this, ChatActivity::class.java))
         }
         binding.btnFixAll.setOnClickListener { onFixAllClicked() }
-        binding.rootRow.setOnClickListener { onRootStatusClicked() }
         binding.okCount.setOnClickListener { toggleFilter(ScanSeverity.OK) }
         binding.warnCount.setOnClickListener { toggleFilter(ScanSeverity.WARNING) }
         binding.critCount.setOnClickListener { toggleFilter(ScanSeverity.CRITICAL) }
@@ -67,11 +64,6 @@ class MainActivity : AppCompatActivity() {
         binding.btnUpdateBanner.setOnClickListener {
             pendingUpdate?.let { continueUpdate(it) } ?: checkForUpdate(silent = false)
         }
-        binding.scoreCard.setOnLongClickListener {
-            revealRootExtra()
-            true
-        }
-        binding.rootCard.visibility = View.GONE
 
         updateDarkToggleIcon()
         observeState()
@@ -113,23 +105,6 @@ class MainActivity : AppCompatActivity() {
     private fun observeState() {
         lifecycleScope.launch {
             repeatOnLifecycle(Lifecycle.State.STARTED) {
-                launch {
-                    viewModel.rootInfo.collect { info ->
-                        binding.rootStatus.text = info
-                        val granted = viewModel.lastRootStatus.value?.hasRoot == true
-                        binding.rootStatus.setTextColor(
-                            ContextCompat.getColor(
-                                this@MainActivity,
-                                if (granted) R.color.ok_green else R.color.warn_amber
-                            )
-                        )
-                        if (granted) {
-                            binding.rootCard.visibility = View.VISIBLE
-                        } else if (!rootExtraVisible) {
-                            binding.rootCard.visibility = View.GONE
-                        }
-                    }
-                }
                 launch {
                     viewModel.uiState.collect(::render)
                 }
@@ -230,22 +205,6 @@ class MainActivity : AppCompatActivity() {
         renderFilterPills(summary)
         renderEmptyFilterMessage()
         adapter.submit(summary.checks, fixResults)
-    }
-
-    private fun revealRootExtra() {
-        rootExtraVisible = true
-        binding.rootCard.visibility = View.VISIBLE
-        Toast.makeText(this, R.string.root_extra_hint, Toast.LENGTH_LONG).show()
-    }
-
-    private fun onRootStatusClicked() {
-        val current = viewModel.lastRootStatus.value
-        if (current?.hasRoot == true) {
-            Toast.makeText(this, R.string.root_granted, Toast.LENGTH_SHORT).show()
-            return
-        }
-        Toast.makeText(this, R.string.root_optional_hint, Toast.LENGTH_LONG).show()
-        viewModel.refreshRoot(force = true)
     }
 
     private fun toggleFilter(severity: ScanSeverity?) {

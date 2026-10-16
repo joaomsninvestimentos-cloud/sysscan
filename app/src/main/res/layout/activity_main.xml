@@ -169,52 +169,6 @@
         </LinearLayout>
     </com.google.android.material.card.MaterialCardView>
 
-    <com.google.android.material.card.MaterialCardView
-        android:id="@+id/rootCard"
-        style="@style/Widget.Material3.CardView.Elevated"
-        android:layout_width="match_parent"
-        android:layout_height="wrap_content"
-        android:layout_marginStart="@dimen/space_medium"
-        android:layout_marginEnd="@dimen/space_medium"
-        android:layout_marginBottom="@dimen/space_small"
-        android:clickable="true"
-        android:focusable="true"
-        android:visibility="gone"
-        app:cardBackgroundColor="@color/card_bg"
-        app:cardCornerRadius="@dimen/card_radius"
-        app:cardElevation="2dp"
-        app:rippleColor="@color/sysscan_primary">
-
-        <LinearLayout
-            android:id="@+id/rootRow"
-            android:layout_width="match_parent"
-            android:layout_height="wrap_content"
-            android:orientation="horizontal"
-            android:gravity="center_vertical"
-            android:padding="@dimen/space_medium"
-            android:clickable="true"
-            android:focusable="true"
-            android:background="?attr/selectableItemBackground">
-
-            <TextView
-                android:layout_width="0dp"
-                android:layout_height="wrap_content"
-                android:layout_weight="1"
-                android:text="@string/root_status_label"
-                android:textColor="@color/gray_text"
-                android:textSize="14sp" />
-
-            <TextView
-                android:id="@+id/rootStatus"
-                android:layout_width="wrap_content"
-                android:layout_height="wrap_content"
-                android:text="—"
-                android:textColor="@color/text_primary"
-                android:textSize="14sp"
-                android:textStyle="bold" />
-        </LinearLayout>
-    </com.google.android.material.card.MaterialCardView>
-
     <LinearLayout
         android:id="@+id/progressCard"
         android:layout_width="match_parent"

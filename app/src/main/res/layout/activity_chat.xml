@@ -134,22 +134,6 @@
                 android:textColor="@color/crit_red"
                 android:textSize="12sp"
                 android:textStyle="bold" />
-
-            <TextView
-                android:id="@+id/chipRoot"
-                android:layout_width="wrap_content"
-                android:layout_height="32dp"
-                android:layout_marginStart="8dp"
-                android:gravity="center"
-                android:paddingStart="12dp"
-                android:paddingEnd="12dp"
-                android:background="@drawable/bg_pill_ok"
-                android:clickable="true"
-                android:focusable="true"
-                android:text="@string/chat_chip_root"
-                android:textColor="@color/ok_green"
-                android:textSize="12sp"
-                android:textStyle="bold" />
         </LinearLayout>
     </HorizontalScrollView>
 

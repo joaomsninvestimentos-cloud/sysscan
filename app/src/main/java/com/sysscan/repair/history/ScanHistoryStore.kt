@@ -10,8 +10,7 @@ data class ScanHistoryEntry(
     val score: Int,
     val critical: Int,
     val warning: Int,
-    val ok: Int,
-    val hasRoot: Boolean
+    val ok: Int
 ) {
     fun toJson(): JSONObject = JSONObject().apply {
         put("ts", timestamp)
@@ -19,7 +18,6 @@ data class ScanHistoryEntry(
         put("critical", critical)
         put("warning", warning)
         put("ok", ok)
-        put("root", hasRoot)
     }
 
     companion object {
@@ -28,8 +26,7 @@ data class ScanHistoryEntry(
             score = obj.optInt("score"),
             critical = obj.optInt("critical"),
             warning = obj.optInt("warning"),
-            ok = obj.optInt("ok"),
-            hasRoot = obj.optBoolean("root")
+            ok = obj.optInt("ok")
         )
     }
 }
@@ -49,8 +46,7 @@ object ScanHistoryStore {
                 score = summary.score,
                 critical = summary.criticalCount,
                 warning = summary.warningCount,
-                ok = summary.okCount,
-                hasRoot = summary.hasRoot
+                ok = summary.okCount
             )
         )
         if (entries.size > MAX_ENTRIES) {

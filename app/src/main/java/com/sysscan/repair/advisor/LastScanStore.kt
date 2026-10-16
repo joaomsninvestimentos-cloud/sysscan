@@ -8,7 +8,6 @@ import org.json.JSONObject
 
 data class ScanSnapshot(
     val score: Int,
-    val hasRoot: Boolean,
     val critical: Int,
     val warning: Int,
     val ok: Int,
@@ -40,7 +39,6 @@ object LastScanStore {
             }
         val obj = JSONObject().apply {
             put("score", summary.score)
-            put("root", summary.hasRoot)
             put("critical", summary.criticalCount)
             put("warning", summary.warningCount)
             put("ok", summary.okCount)
@@ -69,7 +67,6 @@ object LastScanStore {
             }
             ScanSnapshot(
                 score = obj.optInt("score"),
-                hasRoot = obj.optBoolean("root"),
                 critical = obj.optInt("critical"),
                 warning = obj.optInt("warning"),
                 ok = obj.optInt("ok"),
