@@ -28,12 +28,32 @@ jobs:
           SDK_DIR="${ANDROID_HOME:-${ANDROID_SDK_ROOT:-/usr/local/lib/android/sdk}}"
           echo "ANDROID_HOME=$SDK_DIR" >> "$GITHUB_ENV"
           echo "ANDROID_SDK_ROOT=$SDK_DIR" >> "$GITHUB_ENV"
+          echo "$SDK_DIR/cmdline-tools/latest/bin" >> "$GITHUB_PATH"
+          echo "$SDK_DIR/cmdline-tools/bin" >> "$GITHUB_PATH"
+          echo "$SDK_DIR/platform-tools" >> "$GITHUB_PATH"
           echo "SDK em $SDK_DIR"
+          ls -la "$SDK_DIR" || true
+          ls -la "$SDK_DIR/cmdline-tools" || true
 
       - name: Instalar build-tools e platform
         run: |
-          yes | sdkmanager --licenses > /dev/null 2>&1 || true
-          yes | sdkmanager "platforms;android-34" "build-tools;34.0.0" > /dev/null
+          SDKMANAGER=""
+          for candidate in \
+            "$ANDROID_HOME/cmdline-tools/latest/bin/sdkmanager" \
+            "$ANDROID_HOME/cmdline-tools/bin/sdkmanager" \
+            "$(find "$ANDROID_HOME/cmdline-tools" -name sdkmanager -type f 2>/dev/null | head -1)"; do
+            if [ -x "$candidate" ]; then
+              SDKMANAGER="$candidate"
+              break
+            fi
+          done
+          if [ -z "$SDKMANAGER" ]; then
+            echo "sdkmanager nao encontrado, usando o preinstalado no runner"
+            SDKMANAGER="$(command -v sdkmanager || true)"
+          fi
+          echo "Usando $SDKMANAGER"
+          yes | "$SDKMANAGER" --licenses > /dev/null 2>&1 || true
+          yes | "$SDKMANAGER" "platforms;android-34" "build-tools;34.0.0"
 
       - name: Restaurar keystore de release
         run: |
