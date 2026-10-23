@@ -2,9 +2,9 @@ package com.sysscan.repair.updater
 
 import android.content.Context
 import android.content.Intent
+import android.content.pm.PackageInstaller
 import android.net.Uri
 import android.os.Build
-import android.os.Environment
 import android.provider.Settings
 import androidx.core.content.FileProvider
 import org.json.JSONObject
@@ -67,9 +67,7 @@ object UpdateChecker {
     fun downloadApk(context: Context, url: String, onResult: (Result<File>) -> Unit) {
         Thread {
             try {
-                val dir = context.getExternalFilesDir(Environment.DIRECTORY_DOWNLOADS)
-                    ?: context.cacheDir
-                val file = File(dir, "sysscan-update.apk")
+                val file = File(context.cacheDir, "sysscan-update.apk")
                 if (file.exists()) file.delete()
                 val conn = openFollowing(url)
                 if (conn.responseCode !in 200..299) {
@@ -109,7 +107,34 @@ object UpdateChecker {
         }
     }
 
-    fun installApk(context: Context, file: File): Boolean = try {
+    fun installApk(context: Context, file: File): Boolean {
+        if (!file.exists() || file.length() == 0L) return false
+        return try {
+            installViaSession(context, file)
+            true
+        } catch (_: Exception) {
+            installViaIntent(context, file)
+        }
+    }
+
+    private fun installViaSession(context: Context, file: File) {
+        val installer = context.packageManager.packageInstaller
+        val params = PackageInstaller.SessionParams(PackageInstaller.SessionParams.MODE_FULL_INSTALL)
+        params.setAppPackageName(context.packageName)
+        if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.S) {
+            params.setRequireUserAction(PackageInstaller.SessionParams.USER_ACTION_REQUIRED)
+        }
+        val sessionId = installer.createSession(params)
+        installer.openSession(sessionId).use { session ->
+            session.openWrite("sysscan.apk", 0, file.length()).use { out ->
+                file.inputStream().use { input -> input.copyTo(out) }
+                session.fsync(out)
+            }
+            session.commit(InstallResultReceiver.pendingIntent(context, sessionId).intentSender)
+        }
+    }
+
+    private fun installViaIntent(context: Context, file: File): Boolean = try {
         val uri = FileProvider.getUriForFile(
             context, "${context.packageName}.fileprovider", file
         )
@@ -117,10 +142,30 @@ object UpdateChecker {
             setDataAndType(uri, "application/vnd.android.package-archive")
             addFlags(Intent.FLAG_GRANT_READ_URI_PERMISSION)
             addFlags(Intent.FLAG_ACTIVITY_NEW_TASK)
+            putExtra(Intent.EXTRA_NOT_UNKNOWN_SOURCE, true)
+            putExtra(Intent.EXTRA_RETURN_RESULT, true)
+        }
+        val installers = linkedSetOf(
+            "com.google.android.packageinstaller",
+            "com.android.packageinstaller",
+            "com.miui.packageinstaller",
+            "com.miui.global.packageinstaller"
+        )
+        val resInfo = context.packageManager.queryIntentActivities(intent, 0)
+        for (info in resInfo) {
+            installers.add(info.activityInfo.packageName)
+        }
+        for (pkg in installers) {
+            try {
+                context.grantUriPermission(
+                    pkg, uri, Intent.FLAG_GRANT_READ_URI_PERMISSION
+                )
+            } catch (_: Exception) {
+            }
         }
         context.startActivity(intent)
         true
-    } catch (e: Exception) {
+    } catch (_: Exception) {
         false
     }
 
