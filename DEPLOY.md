@@ -3,7 +3,7 @@
 Este guia explica a **ordem correta** do fluxo para que uma única atualização no
 código gere o APK, publique nas plataformas e atualize o app instalado no celular.
 
-> Versão atual: **3.0.1** — o SysScan não requer nem solicita acesso root. O APK é
+> Versão atual: **3.0.2** — o SysScan não requer nem solicita acesso root. O APK é
 > compilado e assinado automaticamente pelo GitHub Actions.
 
 ## Visão geral
@@ -72,13 +72,13 @@ git add .
 git commit -m "feat: nova funcionalidade"
 git push
 
-# Versão da nova atualização (o app está na 3.0.1)
-git tag v3.0.1
-git push origin v3.0.1
+# Versão da nova atualização (o app está na 3.0.2)
+git tag v3.0.2
+git push origin v3.0.2
 ```
 
 O workflow `build-release.yml` roda, compila, assina e publica a Release
-`v3.0.1` com o `SysScan.apk` anexado. Não é preciso ter JDK nem Android SDK
+`v3.0.2` com o `SysScan.apk` anexado. Não é preciso ter JDK nem Android SDK
 na máquina: o build acontece no runner do GitHub.
 
 ## Gerar o APK sem publicar (opcional)
@@ -102,7 +102,7 @@ https://api.github.com/repos/joaomsninvestimentos-cloud/sysscan/releases/latest
   (conceda uma vez para o SysScan).
 
 > A comparação usa a tag da Release (sem o prefixo `v`) contra o
-> `versionName` do app. Ex.: tag `v3.0.1` atualiza um app na versão `3.0`.
+> `versionName` do app. Ex.: tag `v3.0.2` atualiza um app na versão `2.5`.
 
 ## Como aplicar o mesmo fluxo ao seu app financeiro (outra IA)
 

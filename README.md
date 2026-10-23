@@ -122,10 +122,10 @@ usado para assinar o APK de produção:
 zipalign -f 4 app/build/outputs/apk/release/app-release-unsigned.apk dist/app-aligned.apk
 apksigner sign --ks release.keystore --ks-key-alias sysscan \
   --ks-pass pass:sysscan123 --key-pass pass:sysscan123 \
-  --out dist/SysScan-v3.0.1-release.apk dist/app-aligned.apk
+  --out dist/SysScan-v3.0.2-release.apk dist/app-aligned.apk
 ```
 
-O APK assinado fica em `dist/SysScan-v3.0.1-release.apk` e já pode ser instalado.
+O APK assinado fica em `dist/SysScan-v3.0.2-release.apk` e já pode ser instalado.
 
 > Em um projeto de produção, use seu próprio keystore e não o versione no git.
 
@@ -154,4 +154,4 @@ O APK assinado fica em `dist/SysScan-v3.0.1-release.apk` e já pode ser instalad
 - Kotlin 1.9.24, Android Gradle Plugin 8.3.2, Gradle 8.7
 - compileSdk 34, targetSdk 34, minSdk 24 (Android 7.0+)
 - Material Components, ViewModel + StateFlow, Coroutines, ViewBinding
-- Versão atual: 3.0.1 (sem root)
+- Versão atual: 3.0.2 (sem root)
