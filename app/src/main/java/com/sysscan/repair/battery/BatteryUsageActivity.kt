@@ -49,6 +49,9 @@ class BatteryUsageActivity : AppCompatActivity() {
 
         binding.btnBack.setOnClickListener { finish() }
         binding.btnMeasure.setOnClickListener { load(measure = true) }
+        binding.btnCallMode.setOnClickListener {
+            CallModeController(this) { report }.show()
+        }
         binding.btnGrant.setOnClickListener {
             startActivity(Intent(Settings.ACTION_USAGE_ACCESS_SETTINGS))
         }

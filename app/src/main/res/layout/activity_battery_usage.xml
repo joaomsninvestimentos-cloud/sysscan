@@ -116,6 +116,19 @@
         </LinearLayout>
     </com.google.android.material.card.MaterialCardView>
 
+    <com.google.android.material.button.MaterialButton
+        android:id="@+id/btnCallMode"
+        style="@style/Widget.Material3.Button.TonalButton"
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:layout_marginStart="@dimen/space_medium"
+        android:layout_marginEnd="@dimen/space_medium"
+        android:layout_marginBottom="@dimen/space_small"
+        android:text="@string/call_mode_open"
+        android:textAllCaps="false"
+        app:icon="@drawable/ic_battery"
+        app:iconGravity="textStart" />
+
     <LinearLayout
         android:id="@+id/windowRow"
         android:layout_width="match_parent"
