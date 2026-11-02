@@ -231,13 +231,10 @@ class BatteryUsageAnalyzer(private val context: Context) {
     ): Map<String, ForegroundData> {
         val grouped = HashMap<String, ForegroundData>()
         try {
-            val interval = if (end - start <= TimeUnit.HOURS.toMillis(2)) {
-                UsageStatsManager.INTERVAL_HOURLY
-            } else {
-                UsageStatsManager.INTERVAL_DAILY
-            }
             @Suppress("DEPRECATION")
-            val stats = usm.queryUsageStats(interval, start, end) ?: return grouped
+            val stats = usm.queryUsageStats(
+                UsageStatsManager.INTERVAL_DAILY, start, end
+            ) ?: return grouped
             for (stat in stats) {
                 val packageName = stat.packageName
                 if (!packageName.isNullOrBlank() && packageName != "android") {

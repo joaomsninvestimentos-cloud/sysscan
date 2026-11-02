@@ -74,8 +74,12 @@ object SecurityResultsStore {
             }
             val hashObj = obj.optJSONObject("hashes")
             val hashes = mutableMapOf<String, String>()
-            hashObj?.keys()?.forEach { key ->
-                hashes[key] = hashObj.optString(key)
+            if (hashObj != null) {
+                val hashKeys = hashObj.keys()
+                while (hashKeys.hasNext()) {
+                    val key = hashKeys.next()
+                    hashes[key] = hashObj.optString(key)
+                }
             }
             StoredScan(
                 scannedAt = obj.optLong("ts"),

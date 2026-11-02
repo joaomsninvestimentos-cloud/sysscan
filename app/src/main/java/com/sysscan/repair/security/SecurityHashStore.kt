@@ -19,15 +19,19 @@ object SecurityHashStore {
         return try {
             val obj = JSONObject(raw)
             val map = mutableMapOf<String, HashEntry>()
-            obj.keys().forEach { key ->
-                val item = obj.optJSONObject(key) ?: return@forEach
-                val sha = item.optString("sha")
-                if (sha.isNotBlank()) {
-                    map[key] = HashEntry(
-                        sha256 = sha,
-                        size = item.optLong("size"),
-                        path = item.optString("path")
-                    )
+            val keys = obj.keys()
+            while (keys.hasNext()) {
+                val key = keys.next()
+                val item = obj.optJSONObject(key)
+                if (item != null) {
+                    val sha = item.optString("sha")
+                    if (sha.isNotBlank()) {
+                        map[key] = HashEntry(
+                            sha256 = sha,
+                            size = item.optLong("size"),
+                            path = item.optString("path")
+                        )
+                    }
                 }
             }
             map
@@ -37,7 +41,7 @@ object SecurityHashStore {
     }
 
     fun saveHashes(context: Context, entries: Map<String, HashEntry>) {
-        val trimmed = entries.entries.takeLast(MAX_ENTRIES)
+        val trimmed = entries.entries.toList().takeLast(MAX_ENTRIES)
         val obj = JSONObject()
         trimmed.forEach { (packageName, entry) ->
             obj.put(
@@ -63,8 +67,13 @@ object SecurityHashStore {
         return try {
             val obj = JSONObject(raw)
             val map = mutableMapOf<String, VtVerdict>()
-            obj.keys().forEach { key ->
-                obj.optJSONObject(key)?.let { map[key] = VtVerdict.fromJson(it) }
+            val keys = obj.keys()
+            while (keys.hasNext()) {
+                val key = keys.next()
+                val item = obj.optJSONObject(key)
+                if (item != null) {
+                    map[key] = VtVerdict.fromJson(item)
+                }
             }
             map
         } catch (_: Exception) {
@@ -76,7 +85,7 @@ object SecurityHashStore {
         val all = verdicts(context)
         all[sha256] = verdict
         val obj = JSONObject()
-        all.entries.takeLast(MAX_ENTRIES).forEach { (key, value) ->
+        for ((key, value) in all.entries.toList().takeLast(MAX_ENTRIES)) {
             obj.put(key, value.toJson())
         }
         prefs(context).edit().putString(KEY_VERDICTS, obj.toString()).apply()
