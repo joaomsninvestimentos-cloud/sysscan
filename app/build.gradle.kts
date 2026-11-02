@@ -11,8 +11,8 @@ android {
         applicationId = "com.sysscan.repair"
         minSdk = 24
         targetSdk = 34
-        versionCode = 12
-        versionName = "3.0.3"
+        versionCode = 14
+        versionName = "3.2.0"
 
         testInstrumentationRunner = "androidx.test.runner.AndroidJUnitRunner"
     }

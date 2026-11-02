@@ -16,6 +16,9 @@ import androidx.recyclerview.widget.RecyclerView
 import com.sysscan.repair.R
 import com.sysscan.repair.databinding.ActivityChatBinding
 import com.sysscan.repair.databinding.ItemChatMessageBinding
+import com.sysscan.repair.diag.battery.BatteryUsageReport
+import com.sysscan.repair.diag.battery.BatteryUsageStore
+import com.sysscan.repair.security.SecurityResultsStore
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.launch
 import kotlinx.coroutines.withContext
@@ -25,6 +28,8 @@ class ChatActivity : AppCompatActivity() {
     private lateinit var binding: ActivityChatBinding
     private lateinit var adapter: ChatAdapter
     private var snapshot: ScanSnapshot? = null
+    private var battery: BatteryUsageReport? = null
+    private var security: SecurityResultsStore.StoredScan? = null
     private val history = mutableListOf<Pair<String, String>>()
     private var sending = false
 
@@ -34,6 +39,8 @@ class ChatActivity : AppCompatActivity() {
         setContentView(binding.root)
 
         snapshot = LastScanStore.load(this)
+        battery = BatteryUsageStore.load(this)
+        security = SecurityResultsStore.load(this)
         adapter = ChatAdapter()
         binding.chatList.layoutManager = LinearLayoutManager(this).apply {
             stackFromEnd = true
@@ -53,9 +60,20 @@ class ChatActivity : AppCompatActivity() {
         binding.chipPlan.setOnClickListener { sendText(getString(R.string.chat_chip_plan)) }
         binding.chipBattery.setOnClickListener { sendText(getString(R.string.chat_chip_battery)) }
         binding.chipSlow.setOnClickListener { sendText(getString(R.string.chat_chip_slow)) }
+        binding.chipBatteryApps.setOnClickListener {
+            sendText(getString(R.string.chat_chip_battery_apps))
+        }
+        binding.chipVirus.setOnClickListener { sendText(getString(R.string.chat_chip_virus)) }
 
         refreshModeLabel()
-        addBot(DeviceAdvisor.greeting(snapshot))
+        addBot(DeviceAdvisor.greeting(snapshot, battery, security))
+    }
+
+    override fun onResume() {
+        super.onResume()
+        // atualiza o relatório de bateria caso o usuário tenha passado pela tela de consumo
+        battery = BatteryUsageStore.load(this) ?: battery
+        security = SecurityResultsStore.load(this) ?: security
     }
 
     private fun refreshModeLabel() {
@@ -85,9 +103,12 @@ class ChatActivity : AppCompatActivity() {
             lifecycleScope.launch {
                 val reply = withContext(Dispatchers.IO) {
                     try {
-                        LlmClient.ask(this@ChatActivity, text, snapshot, prior.dropLast(1))
+                        LlmClient.ask(
+                            this@ChatActivity, text, snapshot, prior.dropLast(1),
+                            battery, security
+                        )
                     } catch (_: Exception) {
-                        DeviceAdvisor.answer(text, snapshot)
+                        DeviceAdvisor.answer(text, snapshot, battery, security)
                     }
                 }
                 adapter.replaceLastBot(reply)
@@ -97,7 +118,7 @@ class ChatActivity : AppCompatActivity() {
                 scrollToEnd()
             }
         } else {
-            val reply = DeviceAdvisor.answer(text, snapshot)
+            val reply = DeviceAdvisor.answer(text, snapshot, battery, security)
             addBot(reply)
             history.add("assistant" to reply)
         }

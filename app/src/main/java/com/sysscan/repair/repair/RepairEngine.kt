@@ -8,7 +8,9 @@ import android.provider.Settings
 data class FixDefinition(
     val id: String,
     val label: String,
-    val openSettingsIntent: String? = null
+    val openSettingsIntent: String? = null,
+    /** Activity do próprio app aberta por esta ação (ex.: tela de consumo por app). */
+    val openActivityClass: String? = null
 )
 
 data class FixResult(
@@ -65,6 +67,30 @@ object FixRegistry {
             "usage_review", "Revisar apps com uso intenso", openSettingsIntent =
             Settings.ACTION_MANAGE_APPLICATIONS_SETTINGS
         ),
+        "security_open" to FixDefinition(
+            "security_open", "Abrir varredura de segurança",
+            openActivityClass = "com.sysscan.repair.security.SecurityActivity"
+        ),
+        "security_a11y" to FixDefinition(
+            "security_a11y", "Revisar acessibilidade dos apps", openSettingsIntent =
+            Settings.ACTION_ACCESSIBILITY_SETTINGS
+        ),
+        "security_manage" to FixDefinition(
+            "security_manage", "Gerenciar aplicativos instalados", openSettingsIntent =
+            Settings.ACTION_MANAGE_APPLICATIONS_SETTINGS
+        ),
+        "battery_apps_open" to FixDefinition(
+            "battery_apps_open", "Ver ranking de consumo por app",
+            openActivityClass = "com.sysscan.repair.battery.BatteryUsageActivity"
+        ),
+        "battery_settings" to FixDefinition(
+            "battery_settings", "Abrir economia de bateria", openSettingsIntent =
+            Settings.ACTION_BATTERY_SAVER_SETTINGS
+        ),
+        "battery_optimize_settings" to FixDefinition(
+            "battery_optimize_settings", "Revisar otimização de bateria", openSettingsIntent =
+            Settings.ACTION_IGNORE_BATTERY_OPTIMIZATION_SETTINGS
+        ),
         "pkg_fix" to FixDefinition(
             "pkg_fix", "Reinstalar os aplicativos corrompidos",
             openSettingsIntent = Settings.ACTION_MANAGE_APPLICATIONS_SETTINGS
@@ -85,6 +111,7 @@ class RepairEngine(private val context: Context) {
         )
 
         return when {
+            def.openActivityClass != null -> openActivity(def)
             def.openSettingsIntent != null -> openSettings(def)
             fixId == "memory_optimize" || fixId == "cpu_optimize" -> killBackgroundProcesses()
             fixId == "sys_reflash" -> FixResult(
@@ -104,6 +131,18 @@ class RepairEngine(private val context: Context) {
             FixResult(true, "Configurações abertas.")
         } catch (e: Exception) {
             FixResult(false, "Não foi possível abrir as configurações: ${e.message}")
+        }
+    }
+
+    private fun openActivity(def: FixDefinition): FixResult {
+        val className = def.openActivityClass ?: return FixResult(false, "Tela não definida.")
+        return try {
+            val intent = Intent(context, Class.forName(className))
+                .addFlags(Intent.FLAG_ACTIVITY_NEW_TASK)
+            context.startActivity(intent)
+            FixResult(true, "Abrindo consumo de bateria por app.")
+        } catch (e: Exception) {
+            FixResult(false, "Não foi possível abrir a tela: ${e.javaClass.simpleName}.")
         }
     }
 

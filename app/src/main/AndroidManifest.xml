@@ -40,6 +40,16 @@
             android:theme="@style/Theme.SysScan" />
 
         <activity
+            android:name=".security.SecurityActivity"
+            android:exported="false"
+            android:theme="@style/Theme.SysScan" />
+
+        <activity
+            android:name=".battery.BatteryUsageActivity"
+            android:exported="false"
+            android:theme="@style/Theme.SysScan" />
+
+        <activity
             android:name=".advisor.ChatActivity"
             android:exported="false"
             android:windowSoftInputMode="adjustResize"

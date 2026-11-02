@@ -1,16 +1,27 @@
 package com.sysscan.repair.advisor
 
+import com.sysscan.repair.diag.battery.BatteryUsageReport
+import com.sysscan.repair.security.SecurityResultsStore
+import com.sysscan.repair.util.Formatters
+import java.util.Locale
+
 object DeviceAdvisor {
 
-    fun greeting(snapshot: ScanSnapshot?): String {
+    fun greeting(
+        snapshot: ScanSnapshot?,
+        battery: BatteryUsageReport? = null,
+        security: SecurityResultsStore.StoredScan? = null
+    ): String {
+        val batteryLine = batteryGreeting(battery)
         if (snapshot == null) {
             return "Olá. Sou o assistente do SysScan.\n\n" +
                 "Ainda não há uma varredura nesta sessão. Toque em Nova varredura na tela inicial " +
                 "e volte aqui — eu leio o resultado e te digo o que melhorar no aparelho.\n\n" +
                 "Você também pode perguntar, por exemplo:\n" +
                 "• Como melhorar a bateria?\n" +
+                "• Qual app gasta mais bateria?\n" +
                 "• O que está deixando o celular lento?\n" +
-                "• Como atualizar o app?"
+                "• Como atualizar o app?" + batteryLine
         }
         val sb = StringBuilder()
         sb.append("Olá. Li a última varredura: saúde ${snapshot.score}.\n\n")
@@ -24,16 +35,41 @@ object DeviceAdvisor {
             }
             sb.append("\nPergunte o que quiser, ou peça: \"o que eu faço agora?\"")
         }
+        sb.append(batteryLine)
         return sb.toString()
     }
 
-    fun answer(question: String, snapshot: ScanSnapshot?): String {
+    private fun batteryGreeting(battery: BatteryUsageReport?): String {
+        val top = battery?.topApp ?: return ""
+        return "\n\nÚltima medição de bateria: " + top.label +
+            " é o app que mais consome (" +
+            String.format(Locale.US, "%.0f", top.sharePercent) +
+            "% do consumo estimado). Pergunte \"qual app gasta mais bateria?\" para ver o ranking."
+    }
+
+    fun answer(
+        question: String,
+        snapshot: ScanSnapshot?,
+        battery: BatteryUsageReport? = null,
+        security: SecurityResultsStore.StoredScan? = null
+    ): String {
         val q = question.lowercase().trim()
         if (q.isBlank()) return "Pode perguntar sobre bateria, lentidão, aquecimento, armazenamento ou rede."
 
         return when {
             matches(q, "o que eu faço", "o que fazer", "prioridade", "agora", "melhorar tudo", "plano") ->
                 plan(snapshot)
+            matches(
+                q, "vírus", "virus", "malware", "spyware", "espião", "espiao", "espiando",
+                "escondido", "oculto", "ocultos", "hackeado", "hackearam", "invadido",
+                "roubando dados", "app fantasma", "apps fantasmas", "segurança", "seguranca"
+            ) -> securityAnswer(security)
+            matches(
+                q, "qual app", "que app", "qual aplicativo", "que aplicativo",
+                "app gasta", "app consome", "apps gastam", "apps consomem",
+                "consome mais", "gasta mais", "drenando", "dreno", "tirando a bateria",
+                "consumindo bateria", "quem gasta", "quem consome"
+            ) -> batteryConsumption(battery)
             matches(q, "bateria", "descarreg", "autonomia", "carrega") ->
                 battery(snapshot)
             matches(q, "lento", "lentid", "trav", "ram", "memória", "memoria", "lag") ->
@@ -88,6 +124,111 @@ object DeviceAdvisor {
             t.contains("crash") || t.contains("anr") -> "atualize ou desinstale o app que está falhando."
             else -> issue.detail.take(120)
         }
+    }
+
+    private fun securityAnswer(security: SecurityResultsStore.StoredScan?): String {
+        if (security == null) {
+            return "Ainda não tenho uma varredura de segurança salva. Abra \"Verificar vírus e " +
+                "apps ocultos\" na tela inicial (ou rode uma varredura) e depois me pergunte de " +
+                "novo: eu leio a lista de apps ocultos e suspeitos."
+        }
+        val sb = StringBuilder()
+        sb.append("Última análise de segurança: ${security.totalApps} apps verificados.\n")
+
+        val suspicious = security.suspicious
+        if (suspicious.isEmpty()) {
+            sb.append("Nenhum app com indícios fortes de malware foi encontrado.\n")
+        } else {
+            sb.append("\nCom indícios (${suspicious.size}):\n")
+            suspicious.take(5).forEach { app ->
+                sb.append("• ").append(app.label).append(" — ").append(app.level.label)
+                    .append(", risco ").append(app.score).append("/100")
+                if (app.signals.isNotEmpty()) {
+                    sb.append(": ").append(app.signals.take(3).joinToString(", "))
+                }
+                sb.append("\n")
+            }
+            sb.append("\nO que fazer:\n")
+            sb.append("• Se não reconhece o app, abra \"Verificar vírus e apps ocultos\" e use a ficha para desinstalar.\n")
+            sb.append("• Revogue acessibilidade e leitura de notificações de apps desconhecidos.\n")
+            sb.append("• Antes de desinstalar, tire o administrador do aparelho se o botão estiver bloqueado.\n")
+            sb.append("• Troque as senhas das contas se algum app lê SMS/notificações.\n")
+        }
+
+        val hidden = security.hidden
+        if (hidden.isNotEmpty()) {
+            sb.append("\nApps sem ícone (${hidden.size}): ")
+            sb.append(hidden.take(5).joinToString(", ") { it.label })
+            sb.append(". Podem ser legítimos (teclado, complemento), mas confira se você reconhece.\n")
+        }
+
+        val special = security.apps.filter {
+            it.accessibility || it.notificationListener || it.deviceAdmin
+        }
+        if (special.isNotEmpty()) {
+            sb.append("\nCom poderes especiais (acessibilidade/notificações/administrador): ")
+            sb.append(special.take(5).joinToString(", ") { it.label })
+            sb.append(". Esses poderes permitem ver a tela e as mensagens — mantenha só os confiáveis.\n")
+        }
+
+        sb.append(
+            "\nImportante: sem root o app não examina arquivos do sistema nem garante " +
+                "ausência de malware. Para conferir os APKs em mais de 60 antivírus, use a chave " +
+                "do VirusTotal na tela de segurança (só o hash sai do aparelho)."
+        )
+        return sb.toString()
+    }
+
+    private fun batteryConsumption(battery: BatteryUsageReport?): String {
+        if (battery == null) {
+            return "Ainda não tenho uma medição de consumo por app. Abra a tela " +
+                "\"Quem gasta a bateria?\" na tela inicial (ou rode uma varredura) e depois " +
+                "volte aqui: eu leio o ranking e te digo o que fazer."
+        }
+        if (!battery.usageAccessGranted) {
+            return "Para descobrir qual app consome a bateria, o Android exige o acesso ao uso " +
+                "de aplicativos. Abra \"Quem gasta a bateria?\" e toque em Conceder acesso " +
+                "(Configurações > Acesso especial > Acesso ao uso). Depois é só perguntar de novo."
+        }
+        if (battery.apps.isEmpty()) {
+            return "Nenhum consumo relevante foi registrado ${battery.windowLabel()}. " +
+                "Use o aparelho por alguns minutos e abra a tela de bateria novamente."
+        }
+
+        val sb = StringBuilder()
+        sb.append("Ranking de consumo (${battery.windowLabel()}):\n")
+        battery.apps.take(5).forEachIndexed { index, app ->
+            sb.append(index + 1).append(". ").append(app.label).append(" — ")
+            sb.append(String.format(Locale.US, "%.0f", app.sharePercent)).append("% do consumo")
+            sb.append(", ").append(app.usageLabel()).append(" de tela")
+            if (app.totalBytes > 0) sb.append(", ").append(Formatters.bytes(app.totalBytes)).append(" de dados")
+            app.estimatedMah?.let { sb.append(", ≈ ").append(Formatters.milliampHours(it)) }
+            if (app.backgroundSuspect) sb.append(" [segundo plano]")
+            sb.append("\n")
+        }
+
+        val live = battery.live
+        if (!live.charging && live.hasDrain) {
+            sb.append("\nO aparelho está consumindo ${live.drainLabel()} agora")
+            live.autonomyHours?.let { sb.append(", autonomia estimada de ${live.autonomyLabel()}") }
+            sb.append(".\n")
+        }
+
+        val top = battery.topApp
+        sb.append("\nO que fazer:\n")
+        if (top != null) {
+            sb.append("• No app ").append(top.label)
+                .append(": Ajustes > Bateria > Restringir (evita atividade em segundo plano).\n")
+        }
+        val noScreen = battery.backgroundApps
+        if (noScreen.isNotEmpty()) {
+            sb.append("• Restrinja também: ")
+            sb.append(noScreen.take(3).joinToString(", ") { it.label })
+            sb.append(" — trafegam dados sem tela aberta.\n")
+        }
+        sb.append("• Desinstale o que não usa: app parado ainda acorda o sistema.\n")
+        sb.append("• Abra \"Quem gasta a bateria?\" para ver o ranking completo e restringir com um toque.")
+        return sb.toString()
     }
 
     private fun battery(snapshot: ScanSnapshot?): String {

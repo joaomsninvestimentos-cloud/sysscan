@@ -13,6 +13,9 @@ class SystemDiagnostics(private val context: Context) {
             "Verificando bateria" to {
                 BatteryDiagnostic(context).check()
             },
+            "Medindo consumo de bateria" to {
+                BatteryUsageDiagnostic(context).check()
+            },
             "Verificando memória" to {
                 MemoryDiagnostic(context).check()
             },
@@ -34,14 +37,14 @@ class SystemDiagnostics(private val context: Context) {
             "Verificando falhas recentes" to {
                 CrashDiagnostic(context).check()
             },
-            "Medindo bateria por app" to {
-                UsageDiagnostic(context).check()
-            },
             "Verificando integridade dos pacotes" to {
                 PackageIntegrityDiagnostic(context).check()
             },
             "Verificando integridade do sistema" to {
                 SystemIntegrityDiagnostic().check()
+            },
+            "Procurando apps ocultos e malware" to {
+                SecurityDiagnostic(context).check()
             }
         )
 

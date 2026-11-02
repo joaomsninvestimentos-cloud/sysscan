@@ -15,6 +15,8 @@ import androidx.lifecycle.repeatOnLifecycle
 import androidx.recyclerview.widget.LinearLayoutManager
 import com.sysscan.repair.databinding.ActivityMainBinding
 import com.sysscan.repair.advisor.ChatActivity
+import com.sysscan.repair.battery.BatteryUsageActivity
+import com.sysscan.repair.security.SecurityActivity
 import com.sysscan.repair.history.HistoryActivity
 import com.sysscan.repair.model.ScanCheck
 import com.sysscan.repair.model.ScanSeverity
@@ -55,6 +57,12 @@ class MainActivity : AppCompatActivity() {
         }
         binding.btnChat.setOnClickListener {
             startActivity(Intent(this, ChatActivity::class.java))
+        }
+        binding.btnBatteryUsage.setOnClickListener {
+            startActivity(Intent(this, BatteryUsageActivity::class.java))
+        }
+        binding.btnSecurity.setOnClickListener {
+            startActivity(Intent(this, SecurityActivity::class.java))
         }
         binding.btnFixAll.setOnClickListener { onFixAllClicked() }
         binding.okCount.setOnClickListener { toggleFilter(ScanSeverity.OK) }
