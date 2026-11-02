@@ -67,6 +67,18 @@ object FixRegistry {
             "usage_review", "Revisar apps com uso intenso", openSettingsIntent =
             Settings.ACTION_MANAGE_APPLICATIONS_SETTINGS
         ),
+        "security_open" to FixDefinition(
+            "security_open", "Abrir varredura de segurança",
+            openActivityClass = "com.sysscan.repair.security.SecurityActivity"
+        ),
+        "security_a11y" to FixDefinition(
+            "security_a11y", "Revisar acessibilidade dos apps", openSettingsIntent =
+            Settings.ACTION_ACCESSIBILITY_SETTINGS
+        ),
+        "security_manage" to FixDefinition(
+            "security_manage", "Gerenciar aplicativos instalados", openSettingsIntent =
+            Settings.ACTION_MANAGE_APPLICATIONS_SETTINGS
+        ),
         "battery_apps_open" to FixDefinition(
             "battery_apps_open", "Ver ranking de consumo por app",
             openActivityClass = "com.sysscan.repair.battery.BatteryUsageActivity"

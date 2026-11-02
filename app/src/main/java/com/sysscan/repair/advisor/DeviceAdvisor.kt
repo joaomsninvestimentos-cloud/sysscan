@@ -1,12 +1,17 @@
 package com.sysscan.repair.advisor
 
 import com.sysscan.repair.diag.battery.BatteryUsageReport
+import com.sysscan.repair.security.SecurityResultsStore
 import com.sysscan.repair.util.Formatters
 import java.util.Locale
 
 object DeviceAdvisor {
 
-    fun greeting(snapshot: ScanSnapshot?, battery: BatteryUsageReport? = null): String {
+    fun greeting(
+        snapshot: ScanSnapshot?,
+        battery: BatteryUsageReport? = null,
+        security: SecurityResultsStore.StoredScan? = null
+    ): String {
         val batteryLine = batteryGreeting(battery)
         if (snapshot == null) {
             return "Olá. Sou o assistente do SysScan.\n\n" +
@@ -45,7 +50,8 @@ object DeviceAdvisor {
     fun answer(
         question: String,
         snapshot: ScanSnapshot?,
-        battery: BatteryUsageReport? = null
+        battery: BatteryUsageReport? = null,
+        security: SecurityResultsStore.StoredScan? = null
     ): String {
         val q = question.lowercase().trim()
         if (q.isBlank()) return "Pode perguntar sobre bateria, lentidão, aquecimento, armazenamento ou rede."
@@ -53,6 +59,11 @@ object DeviceAdvisor {
         return when {
             matches(q, "o que eu faço", "o que fazer", "prioridade", "agora", "melhorar tudo", "plano") ->
                 plan(snapshot)
+            matches(
+                q, "vírus", "virus", "malware", "spyware", "espião", "espiao", "espiando",
+                "escondido", "oculto", "ocultos", "hackeado", "hackearam", "invadido",
+                "roubando dados", "app fantasma", "apps fantasmas", "segurança", "seguranca"
+            ) -> securityAnswer(security)
             matches(
                 q, "qual app", "que app", "qual aplicativo", "que aplicativo",
                 "app gasta", "app consome", "apps gastam", "apps consomem",
@@ -113,6 +124,59 @@ object DeviceAdvisor {
             t.contains("crash") || t.contains("anr") -> "atualize ou desinstale o app que está falhando."
             else -> issue.detail.take(120)
         }
+    }
+
+    private fun securityAnswer(security: SecurityResultsStore.StoredScan?): String {
+        if (security == null) {
+            return "Ainda não tenho uma varredura de segurança salva. Abra \"Verificar vírus e " +
+                "apps ocultos\" na tela inicial (ou rode uma varredura) e depois me pergunte de " +
+                "novo: eu leio a lista de apps ocultos e suspeitos."
+        }
+        val sb = StringBuilder()
+        sb.append("Última análise de segurança: ${security.totalApps} apps verificados.\n")
+
+        val suspicious = security.suspicious
+        if (suspicious.isEmpty()) {
+            sb.append("Nenhum app com indícios fortes de malware foi encontrado.\n")
+        } else {
+            sb.append("\nCom indícios (${suspicious.size}):\n")
+            suspicious.take(5).forEach { app ->
+                sb.append("• ").append(app.label).append(" — ").append(app.level.label)
+                    .append(", risco ").append(app.score).append("/100")
+                if (app.signals.isNotEmpty()) {
+                    sb.append(": ").append(app.signals.take(3).joinToString(", "))
+                }
+                sb.append("\n")
+            }
+            sb.append("\nO que fazer:\n")
+            sb.append("• Se não reconhece o app, abra \"Verificar vírus e apps ocultos\" e use a ficha para desinstalar.\n")
+            sb.append("• Revogue acessibilidade e leitura de notificações de apps desconhecidos.\n")
+            sb.append("• Antes de desinstalar, tire o administrador do aparelho se o botão estiver bloqueado.\n")
+            sb.append("• Troque as senhas das contas se algum app lê SMS/notificações.\n")
+        }
+
+        val hidden = security.hidden
+        if (hidden.isNotEmpty()) {
+            sb.append("\nApps sem ícone (${hidden.size}): ")
+            sb.append(hidden.take(5).joinToString(", ") { it.label })
+            sb.append(". Podem ser legítimos (teclado, complemento), mas confira se você reconhece.\n")
+        }
+
+        val special = security.apps.filter {
+            it.accessibility || it.notificationListener || it.deviceAdmin
+        }
+        if (special.isNotEmpty()) {
+            sb.append("\nCom poderes especiais (acessibilidade/notificações/administrador): ")
+            sb.append(special.take(5).joinToString(", ") { it.label })
+            sb.append(". Esses poderes permitem ver a tela e as mensagens — mantenha só os confiáveis.\n")
+        }
+
+        sb.append(
+            "\nImportante: sem root o app não examina arquivos do sistema nem garante " +
+                "ausência de malware. Para conferir os APKs em mais de 60 antivírus, use a chave " +
+                "do VirusTotal na tela de segurança (só o hash sai do aparelho)."
+        )
+        return sb.toString()
     }
 
     private fun batteryConsumption(battery: BatteryUsageReport?): String {

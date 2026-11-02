@@ -1,0 +1,112 @@
+<?xml version="1.0" encoding="utf-8"?>
+<LinearLayout xmlns:android="http://schemas.android.com/apk/res/android"
+    xmlns:app="http://schemas.android.com/apk/res-auto"
+    xmlns:tools="http://schemas.android.com/tools"
+    android:layout_width="match_parent"
+    android:layout_height="wrap_content"
+    android:layout_marginBottom="8dp"
+    android:background="@drawable/bg_item_card"
+    android:clickable="true"
+    android:focusable="true"
+    android:gravity="center_vertical"
+    android:orientation="horizontal"
+    android:padding="@dimen/space_medium"
+    tools:context=".security.SecurityActivity">
+
+    <ImageView
+        android:id="@+id/severityIcon"
+        android:layout_width="32dp"
+        android:layout_height="32dp"
+        android:background="@drawable/bg_severity_circle"
+        android:contentDescription="@null"
+        android:padding="6dp"
+        app:tint="@color/white"
+        tools:src="@drawable/ic_warning" />
+
+    <ImageView
+        android:id="@+id/appIcon"
+        android:layout_width="32dp"
+        android:layout_height="32dp"
+        android:layout_marginStart="8dp"
+        android:contentDescription="@null"
+        tools:src="@mipmap/ic_launcher" />
+
+    <LinearLayout
+        android:layout_width="0dp"
+        android:layout_height="wrap_content"
+        android:layout_weight="1"
+        android:layout_marginStart="10dp"
+        android:orientation="vertical">
+
+        <TextView
+            android:id="@+id/appName"
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:ellipsize="end"
+            android:maxLines="1"
+            android:textColor="@color/text_primary"
+            android:textSize="15sp"
+            android:textStyle="bold"
+            tools:text="Insta Pro GB" />
+
+        <TextView
+            android:id="@+id/appSignals"
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:layout_marginTop="1dp"
+            android:maxLines="2"
+            android:ellipsize="end"
+            android:textColor="@color/gray_text"
+            android:textSize="12sp"
+            tools:text="App sem ícone na tela · Serviço de acessibilidade ativo" />
+
+        <TextView
+            android:id="@+id/appMeta"
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:layout_marginTop="2dp"
+            android:maxLines="1"
+            android:ellipsize="end"
+            android:textColor="@color/gray_text"
+            android:textSize="11sp"
+            tools:text="Instalado por outro aplicativo · leitura de SMS" />
+
+        <TextView
+            android:id="@+id/appVt"
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:layout_marginTop="2dp"
+            android:textColor="@color/crit_red"
+            android:textSize="11sp"
+            android:textStyle="bold"
+            android:visibility="gone"
+            tools:text="3 de 62 motores detectaram malware" />
+    </LinearLayout>
+
+    <LinearLayout
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:layout_marginStart="8dp"
+        android:orientation="vertical"
+        android:gravity="center_horizontal">
+
+        <TextView
+            android:id="@+id/appScore"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:textColor="@color/crit_red"
+            android:textSize="20sp"
+            android:textStyle="bold"
+            tools:text="72" />
+
+        <TextView
+            android:id="@+id/appLevel"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:textColor="@color/crit_red"
+            android:textSize="10sp"
+            android:textStyle="bold"
+            tools:text="Crítico" />
+    </LinearLayout>
+
+</LinearLayout>

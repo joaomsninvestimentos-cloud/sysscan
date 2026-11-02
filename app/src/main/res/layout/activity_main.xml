@@ -158,6 +158,19 @@
                 android:textAllCaps="false" />
 
             <com.google.android.material.button.MaterialButton
+                android:id="@+id/btnSecurity"
+                style="@style/Widget.Material3.Button.TextButton"
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:layout_marginTop="4dp"
+                android:minHeight="44dp"
+                android:text="@string/security_open"
+                android:textAllCaps="false"
+                app:icon="@drawable/ic_shield"
+                app:iconTint="@color/sysscan_primary"
+                app:iconGravity="textStart" />
+
+            <com.google.android.material.button.MaterialButton
                 android:id="@+id/btnBatteryUsage"
                 style="@style/Widget.Material3.Button.TextButton"
                 android:layout_width="wrap_content"

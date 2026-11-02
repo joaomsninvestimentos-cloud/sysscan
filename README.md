@@ -23,6 +23,9 @@ oferece ações de correção seguras — **tudo sem root**.
 - **Integridade dos pacotes**: detecção de apps instalados com APK ausente/corrompido
 - **Falhas recentes**: crashes e ANRs das últimas 24h via `DropBoxManager`
 - **Integridade do sistema**: estado de montagem de `/system`, SELinux e arquivos essenciais
+- **Segurança (novo)**: apps **ocultos** (sem ícone), apps com poderes especiais
+  (acessibilidade, leitura de notificações, administrador), indícios de spyware/malware e
+  verificação de APK no VirusTotal
 
 ### Tela "Quem gasta a bateria?" (novo)
 
@@ -44,6 +47,42 @@ Como o Android **não entrega mAh por aplicativo** para apps comuns (isso exige 
 privilegiada `BATTERY_STATS`/`dumpsys batterystats`), o SysScan usa os sinais acima para
 montar o ranking. Com o uso, ele também aprende o consumo real do aparelho (mAh/h) a partir
 de amostras de carga e passa a estimar os mAh de cada app.
+
+### Tela "Verificar vírus e apps ocultos" (novo)
+
+Botão na tela inicial que abre a varredura de segurança. Ela cruza fatos verificáveis no
+aparelho para achar o que costuma passar despercebido:
+
+- **Apps sem ícone** — instalados pelo usuário mas ausentes da tela inicial e da gaveta de
+  apps (aqueles que "existem e você não sabia"). Teclados e complementos legítimos também
+  caem aqui, por isso cada um é explicado.
+- **Poderes especiais ativos** — acessibilidade (vê a tela e toca por você), leitura de todas
+  as notificações (inclui códigos de banco), administrador do aparelho (bloqueia
+  desinstalação) e teclados de terceiros.
+- **Poderes perigosos** — permissões de SMS, chamadas, localização, contatos, microfone,
+  desenhar sobre outros apps e **instalar outros apps**.
+- **Imitação de app famoso** — "WhatsApp GB/Plus", "Insta Pro", "Netflix Mod": nome de marca
+  em pacote diferente do oficial.
+- **Origem da instalação** — loja, APK manual, instalado por outro aplicativo ou origem
+  desconhecida; builds **debuggable**; app compilado para Android antigo; **APK fora do
+  lugar** ou inválido.
+- **Cruzamento com bateria** — app oculto que aparece consumindo bateria ganha peso extra
+  (é o cenário de app espião rodando em segundo plano).
+- **VirusTotal (opcional)** — com a chave gratuita do usuário, o app envia **apenas o hash
+  SHA-256** do APK (o arquivo não sai do aparelho) e mostra o veredito de ~60 antivírus.
+
+Cada app tem uma ficha com todos os indícios, quanto cada um pesou no risco (0–100) e
+botões para **desinstalar**, abrir os **ajustes do app** ou consultar o VirusTotal.
+
+#### O que essa varredura consegue e o que não consegue
+
+Ela **não é** um antivírus com assinaturas e roda **sem root**. Consegue: listar todos os
+pacotes (inclusive ocultos), permissões, poderes ativos, origem da instalação, hash do APK e
+cruzar com o consumo de bateria. **Não** consegue: ler todos os arquivos do sistema, achar
+binários soltos em `/data`, inspecionar o conteúdo interno de cada APK ou remover malware
+automaticamente. Por isso ela aponta **indícios explicados** e leva o usuário à ação correta
+(desinstalar, revogar acessibilidade, trocar senhas). Nenhuma permissão nova foi adicionada —
+usa as mesmas `QUERY_ALL_PACKAGES` e `PACKAGE_USAGE_STATS` que o app já declarava.
 
 ### Filtros OK / Atenção / Crítico
 Os contadores são botões: toque em **Atenção** ou **Crítico** para filtrar e ir direto ao
@@ -70,7 +109,7 @@ O fluxo CI/CD está em `DEPLOY.md`.
 
 ### Assistente (chat)
 Ícone de conversa no topo. Lê a última varredura e responde com um plano de melhoria
-(bateria, lentidão, calor, espaço, rede). Funciona **offline**. Opcionalmente, no
+(bateria, lentidão, calor, espaço, rede, **vírus e apps ocultos**). Funciona **offline**. Opcionalmente, no
 próprio chat, cole sua chave `USER_LLM_API_KEY` (API compatível com OpenAI, ex. DeepSeek)
 para respostas mais livres.
 
@@ -115,9 +154,21 @@ app/src/main/java/com/sysscan/repair/
 │   ├── AppDiagnostic.kt
 │   ├── PackageIntegrityDiagnostic.kt  # Pacotes corrompidos
 │   ├── CrashDiagnostic.kt
+│   ├── SecurityDiagnostic.kt    # Apps ocultos, espiões e malware
 │   └── SystemIntegrityDiagnostic.kt
 ├── battery/
 │   └── BatteryUsageActivity.kt  # Tela "Quem gasta a bateria?"
+├── security/
+│   ├── SecurityActivity.kt      # Tela "Verificar vírus e apps ocultos"
+│   ├── SecurityViewModel.kt     # Estado da análise + consultas ao VirusTotal
+│   ├── SecurityScanner.kt       # Coleta pacotes, poderes, origem e APK
+│   ├── RiskRules.kt             # Heurísticas (peso de cada indício)
+│   ├── SecurityModels.kt
+│   ├── ApkInspector.kt          # SHA-256 / validade do ZIP
+│   ├── VtClient.kt              # Consulta por hash no VirusTotal
+│   ├── SecurityHashStore.kt     # Cache de hashes e laudos
+│   ├── SecurityResultsStore.kt  # Último resultado (assistente)
+│   └── SecurityAppAdapter.kt
 ├── repair/
 │   └── RepairEngine.kt          # Registro e execução das ações de reparo
 ├── advisor/
@@ -188,4 +239,4 @@ O APK assinado fica em `dist/SysScan-v3.0.2-release.apk` e já pode ser instalad
 - Kotlin 1.9.24, Android Gradle Plugin 8.3.2, Gradle 8.7
 - compileSdk 34, targetSdk 34, minSdk 24 (Android 7.0+)
 - Material Components, ViewModel + StateFlow, Coroutines, ViewBinding
-- Versão atual: 3.1.0 (sem root)
+- Versão atual: 3.2.0 (sem root)

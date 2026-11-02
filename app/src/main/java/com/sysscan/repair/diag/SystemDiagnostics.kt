@@ -42,6 +42,9 @@ class SystemDiagnostics(private val context: Context) {
             },
             "Verificando integridade do sistema" to {
                 SystemIntegrityDiagnostic().check()
+            },
+            "Procurando apps ocultos e malware" to {
+                SecurityDiagnostic(context).check()
             }
         )
 
