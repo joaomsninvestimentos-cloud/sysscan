@@ -41,7 +41,7 @@ object SecurityHashStore {
     }
 
     fun saveHashes(context: Context, entries: Map<String, HashEntry>) {
-        val trimmed = entries.entries.takeLast(MAX_ENTRIES)
+        val trimmed = entries.entries.toList().takeLast(MAX_ENTRIES)
         val obj = JSONObject()
         trimmed.forEach { (packageName, entry) ->
             obj.put(
@@ -85,7 +85,7 @@ object SecurityHashStore {
         val all = verdicts(context)
         all[sha256] = verdict
         val obj = JSONObject()
-        for ((key, value) in all.entries.takeLast(MAX_ENTRIES)) {
+        for ((key, value) in all.entries.toList().takeLast(MAX_ENTRIES)) {
             obj.put(key, value.toJson())
         }
         prefs(context).edit().putString(KEY_VERDICTS, obj.toString()).apply()
