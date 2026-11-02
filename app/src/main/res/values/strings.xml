@@ -149,4 +149,24 @@
     <string name="security_risk_label">risco %1$d/100</string>
     <string name="security_scan_hidden_only">Mostrando apenas apps sem ícone</string>
     <string name="chat_chip_virus">Tem vírus no meu celular?</string>
+
+    <string name="call_mode_open">Modo chamada</string>
+    <string name="call_mode_title">Modo chamada de vídeo</string>
+    <string name="call_mode_live">Consumo agora: %1$s · autonomia %2$s</string>
+    <string name="call_mode_live_charging">Aparelho carregando — mA só é medido fora do carregador</string>
+    <string name="call_mode_live_unavailable">Este aparelho não informa a corrente em mA</string>
+    <string name="call_mode_apps_title">Apps de chamada neste aparelho</string>
+    <string name="call_mode_app_line">• %1$s — %2$s</string>
+    <string name="call_mode_apps_empty">Nenhum app de chamada de vídeo encontrado.</string>
+    <string name="call_mode_share_summary">Chamadas respondem por %1$s%% do consumo medido.</string>
+    <string name="call_mode_brightness">Baixar brilho agora</string>
+    <string name="call_mode_brightness_restore">Restaurar brilho anterior</string>
+    <string name="call_mode_brightness_done">Brilho reduzido. Toque de novo para restaurar.</string>
+    <string name="call_mode_brightness_restored">Brilho original restaurado.</string>
+    <string name="call_mode_brightness_no_permission">Para o SysScan alterar o brilho, permita em Configurações > Modificar configurações do sistema.</string>
+    <string name="call_mode_measure">Medir consumo agora</string>
+    <string name="call_mode_network">Abrir Wi-Fi e rede</string>
+    <string name="call_mode_restrict">Ajustes de bateria do app de chamada</string>
+    <string name="call_mode_no_app">Nenhum app de chamada para abrir os ajustes.</string>
+    <string name="call_mode_scan_hint">Dica: coloque o celular fora do carregador, abra o app de chamada e toque em Medir para comparar com a chamada desligada.</string>
 </resources>

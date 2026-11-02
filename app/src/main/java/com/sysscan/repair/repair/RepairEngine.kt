@@ -83,6 +83,10 @@ object FixRegistry {
             "battery_apps_open", "Ver ranking de consumo por app",
             openActivityClass = "com.sysscan.repair.battery.BatteryUsageActivity"
         ),
+        "call_mode_open" to FixDefinition(
+            "call_mode_open", "Abrir consumo e Modo chamada",
+            openActivityClass = "com.sysscan.repair.battery.BatteryUsageActivity"
+        ),
         "battery_settings" to FixDefinition(
             "battery_settings", "Abrir economia de bateria", openSettingsIntent =
             Settings.ACTION_BATTERY_SAVER_SETTINGS

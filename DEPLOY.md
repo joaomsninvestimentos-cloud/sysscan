@@ -3,7 +3,7 @@
 Este guia explica a **ordem correta** do fluxo para que uma única atualização no
 código gere o APK, publique nas plataformas e atualize o app instalado no celular.
 
-> Versão atual: **3.2.0** — o SysScan não requer nem solicita acesso root. O APK é
+> Versão atual: **3.3.0** — o SysScan não requer nem solicita acesso root. O APK é
 > compilado e assinado automaticamente pelo GitHub Actions.
 
 ## Visão geral

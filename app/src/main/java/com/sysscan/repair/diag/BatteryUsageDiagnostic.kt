@@ -39,6 +39,7 @@ class BatteryUsageDiagnostic(private val context: Context) {
         results.add(accessCheck(report))
         results.add(drainCheck(report))
         results.add(topAppCheck(report))
+        results.add(videoCallCheck(report))
         results.add(backgroundCheck(report))
         results.add(dozeCheck(report))
 
@@ -139,6 +140,43 @@ class BatteryUsageDiagnostic(private val context: Context) {
             ScanCheckBuilder.ok(
                 id, ScanCategory.APPS, "App que mais consome bateria: ${top.label}", detail
             )
+        }
+    }
+
+    private fun videoCallCheck(report: BatteryUsageReport): ScanCheck {
+        val id = "usage_video_calls"
+        val title = "Apps de chamada de vídeo"
+        if (!report.usageAccessGranted) {
+            return ScanCheckBuilder.info(
+                id, ScanCategory.BATTERY, title,
+                "Conceda o acesso ao uso para medir o consumo de chamadas de vídeo."
+            )
+        }
+        val callApps = try {
+            com.sysscan.repair.battery.CallModeHelper.callApps(context, report)
+        } catch (_: Exception) {
+            emptyList()
+        }
+        val active = callApps.filter { it.usage != null }
+        if (active.isEmpty()) {
+            return ScanCheckBuilder.ok(
+                id, ScanCategory.BATTERY, title,
+                "Nenhum app de chamada de vídeo com uso registrado ${report.windowLabel()}."
+            )
+        }
+        val share = active.sumOf { it.sharePercent }
+        val list = active.take(3).joinToString("; ") {
+            "${it.label} (${format(it.sharePercent)}%, ${it.usage?.usageLabel() ?: "—"} de tela)"
+        }
+        val detail = "$list. Chamadas de vídeo somam ${format(share)}% do consumo estimado " +
+            "— câmera, tela acesa, codificação e rádio ao mesmo tempo."
+        return when {
+            share >= 25.0 -> ScanCheckBuilder.warning(
+                id, ScanCategory.BATTERY,
+                "Chamadas de vídeo consumindo ${format(share)}% da bateria", detail,
+                "call_mode_open"
+            )
+            else -> ScanCheckBuilder.info(id, ScanCategory.BATTERY, title, detail)
         }
     }
 
