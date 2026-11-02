@@ -78,4 +78,35 @@
     <string name="chat_chip_plan">O que eu faço agora?</string>
     <string name="chat_chip_battery">Melhorar bateria</string>
     <string name="chat_chip_slow">Celular lento</string>
+
+    <string name="battery_usage_title">Consumo de bateria</string>
+    <string name="battery_usage_subtitle">Quem está gastando a bateria do aparelho</string>
+    <string name="battery_usage_open">Quem gasta a bateria?</string>
+    <string name="battery_live_title">Consumo agora</string>
+    <string name="battery_live_detail">Autonomia estimada: %1$s · Nível %2$s · %3$s</string>
+    <string name="battery_live_charging">Carregando — o consumo em mA só é medido fora do carregador.</string>
+    <string name="battery_live_unavailable">Este aparelho não informa a corrente instantânea. O ranking por app continua válido.</string>
+    <string name="battery_measure">Medir de novo</string>
+    <string name="battery_measuring">Medindo…</string>
+    <string name="battery_window_1h">1h</string>
+    <string name="battery_window_6h">6h</string>
+    <string name="battery_window_24h">24h</string>
+    <string name="battery_ranking_title">Quem mais consome</string>
+    <string name="battery_summary">%1$d app(s) %2$s — barra = fatia do consumo</string>
+    <string name="battery_summary_observed">%1$d app(s) %2$s · aparelho ≈ %3$s mAh/h — barra = fatia do consumo</string>
+    <string name="battery_permission_title">Falta o acesso ao uso</string>
+    <string name="battery_permission_body">Sem essa permissão o Android não informa qual aplicativo está consumindo a bateria. Nada é enviado para fora do aparelho.</string>
+    <string name="battery_grant">Conceder acesso</string>
+    <string name="battery_loading">Analisando o consumo dos apps…</string>
+    <string name="battery_empty">Nenhum consumo registrado nesta janela. Use o aparelho por alguns minutos e toque em Medir de novo.</string>
+    <string name="battery_error">Não foi possível analisar o consumo agora. Tente novamente.</string>
+    <string name="battery_app_open">Abrir app</string>
+    <string name="battery_app_restrict">Restringir bateria</string>
+    <string name="battery_app_close">Fechar</string>
+    <string name="battery_app_details_title">Detalhes de consumo</string>
+    <string name="battery_restrict_hint">Em Ajustes do app > Bateria, escolha Restringir ou Otimizar. Isso reduz a atividade em segundo plano.</string>
+    <string name="battery_no_launch">Este app não tem tela inicial para abrir.</string>
+    <string name="battery_open_failed">Não foi possível abrir as configurações do app.</string>
+    <string name="chat_chip_battery_apps">Qual app gasta mais bateria?</string>
+    <string name="battery_percent_share">%1$s%%</string>
 </resources>

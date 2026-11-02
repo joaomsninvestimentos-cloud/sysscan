@@ -134,6 +134,22 @@
                 android:textColor="@color/crit_red"
                 android:textSize="12sp"
                 android:textStyle="bold" />
+
+            <TextView
+                android:id="@+id/chipBatteryApps"
+                android:layout_width="wrap_content"
+                android:layout_height="32dp"
+                android:layout_marginStart="8dp"
+                android:gravity="center"
+                android:paddingStart="12dp"
+                android:paddingEnd="12dp"
+                android:background="@drawable/bg_pill_warn"
+                android:clickable="true"
+                android:focusable="true"
+                android:text="@string/chat_chip_battery_apps"
+                android:textColor="@color/warn_amber"
+                android:textSize="12sp"
+                android:textStyle="bold" />
         </LinearLayout>
     </HorizontalScrollView>
 

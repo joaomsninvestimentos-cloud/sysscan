@@ -1,0 +1,97 @@
+<?xml version="1.0" encoding="utf-8"?>
+<LinearLayout xmlns:android="http://schemas.android.com/apk/res/android"
+    xmlns:app="http://schemas.android.com/apk/res-auto"
+    xmlns:tools="http://schemas.android.com/tools"
+    android:layout_width="match_parent"
+    android:layout_height="wrap_content"
+    android:layout_marginBottom="8dp"
+    android:background="@drawable/bg_item_card"
+    android:orientation="vertical"
+    android:padding="@dimen/space_medium"
+    android:clickable="true"
+    android:focusable="true"
+    tools:context=".battery.BatteryUsageActivity">
+
+    <LinearLayout
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:orientation="horizontal"
+        android:gravity="center_vertical">
+
+        <TextView
+            android:id="@+id/rank"
+            android:layout_width="20dp"
+            android:layout_height="wrap_content"
+            android:textColor="@color/gray_text"
+            android:textSize="14sp"
+            android:textStyle="bold"
+            tools:text="1" />
+
+        <ImageView
+            android:id="@+id/appIcon"
+            android:layout_width="36dp"
+            android:layout_height="36dp"
+            android:layout_marginStart="6dp"
+            android:contentDescription="@null"
+            tools:src="@mipmap/ic_launcher" />
+
+        <LinearLayout
+            android:layout_width="0dp"
+            android:layout_height="wrap_content"
+            android:layout_weight="1"
+            android:layout_marginStart="10dp"
+            android:orientation="vertical">
+
+            <TextView
+                android:id="@+id/appName"
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:ellipsize="end"
+                android:maxLines="1"
+                android:textColor="@color/text_primary"
+                android:textSize="15sp"
+                android:textStyle="bold"
+                tools:text="Instagram" />
+
+            <TextView
+                android:id="@+id/appDetail"
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:textColor="@color/gray_text"
+                android:textSize="12sp"
+                tools:text="3h 20min em uso · 210,5 MB · peso 68/100" />
+        </LinearLayout>
+
+        <TextView
+            android:id="@+id/appShare"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:layout_marginStart="8dp"
+            android:textColor="@color/text_primary"
+            android:textSize="16sp"
+            android:textStyle="bold"
+            tools:text="42%" />
+    </LinearLayout>
+
+    <ProgressBar
+        android:id="@+id/shareBar"
+        style="?android:attr/progressBarStyleHorizontal"
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:layout_marginTop="@dimen/space_small"
+        android:max="100"
+        android:progressBackgroundTint="@color/divider"
+        android:progressTint="@color/crit_red"
+        tools:progress="42" />
+
+    <TextView
+        android:id="@+id/appFlag"
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:layout_marginTop="2dp"
+        android:textColor="@color/warn_amber"
+        android:textSize="11sp"
+        android:visibility="gone"
+        tools:text="Atividade em segundo plano · isento da otimização" />
+
+</LinearLayout>

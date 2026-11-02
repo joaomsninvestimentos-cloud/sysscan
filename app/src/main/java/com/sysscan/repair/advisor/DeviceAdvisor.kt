@@ -1,16 +1,22 @@
 package com.sysscan.repair.advisor
 
+import com.sysscan.repair.diag.battery.BatteryUsageReport
+import com.sysscan.repair.util.Formatters
+import java.util.Locale
+
 object DeviceAdvisor {
 
-    fun greeting(snapshot: ScanSnapshot?): String {
+    fun greeting(snapshot: ScanSnapshot?, battery: BatteryUsageReport? = null): String {
+        val batteryLine = batteryGreeting(battery)
         if (snapshot == null) {
             return "Olá. Sou o assistente do SysScan.\n\n" +
                 "Ainda não há uma varredura nesta sessão. Toque em Nova varredura na tela inicial " +
                 "e volte aqui — eu leio o resultado e te digo o que melhorar no aparelho.\n\n" +
                 "Você também pode perguntar, por exemplo:\n" +
                 "• Como melhorar a bateria?\n" +
+                "• Qual app gasta mais bateria?\n" +
                 "• O que está deixando o celular lento?\n" +
-                "• Como atualizar o app?"
+                "• Como atualizar o app?" + batteryLine
         }
         val sb = StringBuilder()
         sb.append("Olá. Li a última varredura: saúde ${snapshot.score}.\n\n")
@@ -24,16 +30,35 @@ object DeviceAdvisor {
             }
             sb.append("\nPergunte o que quiser, ou peça: \"o que eu faço agora?\"")
         }
+        sb.append(batteryLine)
         return sb.toString()
     }
 
-    fun answer(question: String, snapshot: ScanSnapshot?): String {
+    private fun batteryGreeting(battery: BatteryUsageReport?): String {
+        val top = battery?.topApp ?: return ""
+        return "\n\nÚltima medição de bateria: " + top.label +
+            " é o app que mais consome (" +
+            String.format(Locale.US, "%.0f", top.sharePercent) +
+            "% do consumo estimado). Pergunte \"qual app gasta mais bateria?\" para ver o ranking."
+    }
+
+    fun answer(
+        question: String,
+        snapshot: ScanSnapshot?,
+        battery: BatteryUsageReport? = null
+    ): String {
         val q = question.lowercase().trim()
         if (q.isBlank()) return "Pode perguntar sobre bateria, lentidão, aquecimento, armazenamento ou rede."
 
         return when {
             matches(q, "o que eu faço", "o que fazer", "prioridade", "agora", "melhorar tudo", "plano") ->
                 plan(snapshot)
+            matches(
+                q, "qual app", "que app", "qual aplicativo", "que aplicativo",
+                "app gasta", "app consome", "apps gastam", "apps consomem",
+                "consome mais", "gasta mais", "drenando", "dreno", "tirando a bateria",
+                "consumindo bateria", "quem gasta", "quem consome"
+            ) -> batteryConsumption(battery)
             matches(q, "bateria", "descarreg", "autonomia", "carrega") ->
                 battery(snapshot)
             matches(q, "lento", "lentid", "trav", "ram", "memória", "memoria", "lag") ->
@@ -88,6 +113,58 @@ object DeviceAdvisor {
             t.contains("crash") || t.contains("anr") -> "atualize ou desinstale o app que está falhando."
             else -> issue.detail.take(120)
         }
+    }
+
+    private fun batteryConsumption(battery: BatteryUsageReport?): String {
+        if (battery == null) {
+            return "Ainda não tenho uma medição de consumo por app. Abra a tela " +
+                "\"Quem gasta a bateria?\" na tela inicial (ou rode uma varredura) e depois " +
+                "volte aqui: eu leio o ranking e te digo o que fazer."
+        }
+        if (!battery.usageAccessGranted) {
+            return "Para descobrir qual app consome a bateria, o Android exige o acesso ao uso " +
+                "de aplicativos. Abra \"Quem gasta a bateria?\" e toque em Conceder acesso " +
+                "(Configurações > Acesso especial > Acesso ao uso). Depois é só perguntar de novo."
+        }
+        if (battery.apps.isEmpty()) {
+            return "Nenhum consumo relevante foi registrado ${battery.windowLabel()}. " +
+                "Use o aparelho por alguns minutos e abra a tela de bateria novamente."
+        }
+
+        val sb = StringBuilder()
+        sb.append("Ranking de consumo (${battery.windowLabel()}):\n")
+        battery.apps.take(5).forEachIndexed { index, app ->
+            sb.append(index + 1).append(". ").append(app.label).append(" — ")
+            sb.append(String.format(Locale.US, "%.0f", app.sharePercent)).append("% do consumo")
+            sb.append(", ").append(app.usageLabel()).append(" de tela")
+            if (app.totalBytes > 0) sb.append(", ").append(Formatters.bytes(app.totalBytes)).append(" de dados")
+            app.estimatedMah?.let { sb.append(", ≈ ").append(Formatters.milliampHours(it)) }
+            if (app.backgroundSuspect) sb.append(" [segundo plano]")
+            sb.append("\n")
+        }
+
+        val live = battery.live
+        if (!live.charging && live.hasDrain) {
+            sb.append("\nO aparelho está consumindo ${live.drainLabel()} agora")
+            live.autonomyHours?.let { sb.append(", autonomia estimada de ${live.autonomyLabel()}") }
+            sb.append(".\n")
+        }
+
+        val top = battery.topApp
+        sb.append("\nO que fazer:\n")
+        if (top != null) {
+            sb.append("• No app ").append(top.label)
+                .append(": Ajustes > Bateria > Restringir (evita atividade em segundo plano).\n")
+        }
+        val noScreen = battery.backgroundApps
+        if (noScreen.isNotEmpty()) {
+            sb.append("• Restrinja também: ")
+            sb.append(noScreen.take(3).joinToString(", ") { it.label })
+            sb.append(" — trafegam dados sem tela aberta.\n")
+        }
+        sb.append("• Desinstale o que não usa: app parado ainda acorda o sistema.\n")
+        sb.append("• Abra \"Quem gasta a bateria?\" para ver o ranking completo e restringir com um toque.")
+        return sb.toString()
     }
 
     private fun battery(snapshot: ScanSnapshot?): String {

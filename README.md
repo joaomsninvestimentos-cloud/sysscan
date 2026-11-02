@@ -7,7 +7,8 @@ oferece ações de correção seguras — **tudo sem root**.
 ## Funcionalidades
 
 ### Varredura de diagnóstico (sem root)
-- **Bateria**: nível, temperatura e saúde (via `BatteryManager` / `ACTION_BATTERY_CHANGED`)
+- **Bateria**: nível, temperatura, saúde e **corrente de descarga agora** (mA / autonomia
+  estimada) via `BatteryManager` / `ACTION_BATTERY_CHANGED`
 - **Memória**: memória disponível, baixa memória do sistema e pressão dos processos
 - **Processos pesados**: detecção de processos consumindo memória excessiva (acima de 300 MB)
 - **Armazenamento**: espaço interno e externo, tamanho do cache do app
@@ -15,10 +16,34 @@ oferece ações de correção seguras — **tudo sem root**.
 - **CPU**: uso de CPU entre amostras de `/proc/stat`
 - **Sensores**: presença dos sensores principais
 - **Aplicativos**: quantidade, apps com permissões excessivas, fontes de instalação
-- **Consumo de bateria por app**: via `UsageStatsManager` (requer acesso ao uso)
+- **Consumo de bateria por app (novo)**: descobre **qual aplicativo está gastando a bateria**,
+  cruzando tempo de tela, sessões, tráfego de rede móvel/Wi-Fi, atividade em segundo plano e
+  isenção do Doze (`UsageStatsManager` + `NetworkStatsManager` + `PowerManager`). Requer
+  acesso ao uso; sem root.
 - **Integridade dos pacotes**: detecção de apps instalados com APK ausente/corrompido
 - **Falhas recentes**: crashes e ANRs das últimas 24h via `DropBoxManager`
 - **Integridade do sistema**: estado de montagem de `/system`, SELinux e arquivos essenciais
+
+### Tela "Quem gasta a bateria?" (novo)
+
+Botão na tela inicial (abaixo de *Iniciar varredura*) que abre o detalhamento do consumo:
+
+- **Consumo agora**: corrente real de descarga do aparelho em **mA** (`CURRENT_NOW`), autonomia
+  estimada, nível e temperatura. O botão *Medir de novo* tira uma média de 4 leituras.
+- **Ranking por app**: para cada aplicativo, tempo em uso, número de aberturas, dados
+  trafegados, **peso de consumo (0–100)** e **fatia do consumo estimado (%)**, com barra
+  colorida (verde → vermelho).
+- **Sinais**: marca apps com *atividade em segundo plano* (tráfego móvel alto e quase nenhuma
+  tela) e apps *isentos da otimização de bateria* (fora do Doze).
+- **Janelas de 1h / 6h / 24h** para ver o que pesou agora ou no dia.
+- Toque em um app para ver os detalhes e usar **Restringir bateria** (abre os ajustes do app,
+  onde se escolhe *Restringir*/*Otimizar*) ou **Abrir app**.
+- O relatório fica salvo no aparelho e alimenta o assistente ("qual app gasta mais bateria?").
+
+Como o Android **não entrega mAh por aplicativo** para apps comuns (isso exige a permissão
+privilegiada `BATTERY_STATS`/`dumpsys batterystats`), o SysScan usa os sinais acima para
+montar o ranking. Com o uso, ele também aprende o consumo real do aparelho (mAh/h) a partir
+de amostras de carga e passa a estimar os mAh de cada app.
 
 ### Filtros OK / Atenção / Crítico
 Os contadores são botões: toque em **Atenção** ou **Crítico** para filtrar e ir direto ao
@@ -74,16 +99,25 @@ app/src/main/java/com/sysscan/repair/
 ├── diag/
 │   ├── SystemDiagnostics.kt     # Orquestra a varredura (com progresso)
 │   ├── BatteryDiagnostic.kt
+│   ├── BatteryUsageDiagnostic.kt  # Ranking de consumo por app + corrente (mA)
+│   ├── battery/
+│   │   ├── BatteryUsageAnalyzer.kt  # Cruza uso, sessões, rede e Doze
+│   │   ├── BatteryScoring.kt        # Peso de consumo (0–100) e fatias
+│   │   ├── BatteryLiveMeter.kt      # CURRENT_NOW / CHARGE_COUNTER (mA, autonomia)
+│   │   ├── BatteryDrainTracker.kt   # Amostras de carga → mAh/h observados
+│   │   ├── BatteryUsageModels.kt
+│   │   └── BatteryUsageStore.kt     # Último relatório salvo
 │   ├── MemoryDiagnostic.kt      # Inclui detecção de processos pesados
 │   ├── StorageDiagnostic.kt
 │   ├── NetworkDiagnostic.kt
 │   ├── CpuDiagnostic.kt
 │   ├── SensorsDiagnostic.kt
 │   ├── AppDiagnostic.kt
-│   ├── UsageDiagnostic.kt       # Consumo de bateria por app (UsageStats)
 │   ├── PackageIntegrityDiagnostic.kt  # Pacotes corrompidos
 │   ├── CrashDiagnostic.kt
 │   └── SystemIntegrityDiagnostic.kt
+├── battery/
+│   └── BatteryUsageActivity.kt  # Tela "Quem gasta a bateria?"
 ├── repair/
 │   └── RepairEngine.kt          # Registro e execução das ações de reparo
 ├── advisor/
@@ -137,7 +171,7 @@ O APK assinado fica em `dist/SysScan-v3.0.2-release.apk` e já pode ser instalad
 | `BATTERY_STATS` | Leitura de dados da bateria |
 | `KILL_BACKGROUND_PROCESSES` | Otimização de memória |
 | `QUERY_ALL_PACKAGES` | Listar e analisar apps instalados |
-| `PACKAGE_USAGE_STATS` | Medir consumo de bateria por app (concedida em Configurações > Acesso especial) |
+| `PACKAGE_USAGE_STATS` | Ranking de consumo por app e tráfego de rede por UID (concedida em Configurações > Acesso especial > Acesso ao uso) |
 | `READ_LOGS` | Leitura de registros de falhas (auto-concedida em builds de debug) |
 
 ## Como instalar
@@ -154,4 +188,4 @@ O APK assinado fica em `dist/SysScan-v3.0.2-release.apk` e já pode ser instalad
 - Kotlin 1.9.24, Android Gradle Plugin 8.3.2, Gradle 8.7
 - compileSdk 34, targetSdk 34, minSdk 24 (Android 7.0+)
 - Material Components, ViewModel + StateFlow, Coroutines, ViewBinding
-- Versão atual: 3.0.2 (sem root)
+- Versão atual: 3.1.0 (sem root)

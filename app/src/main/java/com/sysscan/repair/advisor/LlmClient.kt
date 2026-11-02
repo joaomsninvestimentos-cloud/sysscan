@@ -1,10 +1,12 @@
 package com.sysscan.repair.advisor
 
 import android.content.Context
+import com.sysscan.repair.diag.battery.BatteryUsageReport
 import org.json.JSONArray
 import org.json.JSONObject
 import java.net.HttpURLConnection
 import java.net.URL
+import java.util.Locale
 
 object LlmClient {
 
@@ -12,7 +14,8 @@ object LlmClient {
         context: Context,
         userMessage: String,
         snapshot: ScanSnapshot?,
-        history: List<Pair<String, String>>
+        history: List<Pair<String, String>>,
+        battery: BatteryUsageReport? = null
     ): String {
         val key = LlmSettings.apiKey(context)
         if (key.isBlank()) {
@@ -26,7 +29,7 @@ object LlmClient {
             put("messages", JSONArray().apply {
                 put(JSONObject().apply {
                     put("role", "system")
-                    put("content", systemPrompt(snapshot))
+                    put("content", systemPrompt(snapshot, battery))
                 })
                 history.takeLast(8).forEach { (role, content) ->
                     put(JSONObject().apply {
@@ -64,7 +67,7 @@ object LlmClient {
             .ifBlank { throw IllegalStateException("Resposta vazia") }
     }
 
-    private fun systemPrompt(snapshot: ScanSnapshot?): String {
+    private fun systemPrompt(snapshot: ScanSnapshot?, battery: BatteryUsageReport?): String {
         val scan = if (snapshot == null) {
             "Ainda não há varredura salva."
         } else {
@@ -79,9 +82,30 @@ object LlmClient {
                 }
             }
         }
+        val batteryInfo = if (battery == null) {
+            "sem medição de consumo por app."
+        } else {
+            buildString {
+                if (!battery.usageAccessGranted) {
+                    append("sem permissão de acesso ao uso (não há ranking de apps). ")
+                } else {
+                    append("janela: ${battery.windowLabel()}. ")
+                    battery.live.drainMa?.let {
+                        append("Consumo atual ${battery.live.drainLabel()}. ")
+                    }
+                    append("Ranking: ")
+                    battery.topApps.forEach {
+                        append(it.label)
+                        append(" ${String.format(Locale.US, "%.0f", it.sharePercent)}%")
+                        append(" (").append(it.usageLabel()).append(" de tela), ")
+                    }
+                }
+            }
+        }
         return "Você é o assistente do app Android SysScan. Responda em português, curto e prático. " +
             "Ajude a melhorar bateria, RAM, calor, armazenamento e estabilidade. " +
             "Não invente arquivos de sistema que o app não consegue restaurar. " +
-            "Dados da última varredura: $scan"
+            "Dados da última varredura: $scan " +
+            "Consumo de bateria por app: $batteryInfo"
     }
 }
