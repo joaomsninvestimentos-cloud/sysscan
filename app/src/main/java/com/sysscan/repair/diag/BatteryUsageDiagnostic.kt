@@ -164,9 +164,9 @@ class BatteryUsageDiagnostic(private val context: Context) {
                 "Nenhum app de chamada de vídeo com uso registrado ${report.windowLabel()}."
             )
         }
-        val share = active.sumOf { it.sharePercent }
+        val share = active.sumOf { it.share }
         val list = active.take(3).joinToString("; ") {
-            "${it.label} (${format(it.sharePercent)}%, ${it.usage?.usageLabel() ?: "—"} de tela)"
+            "${it.label} (${format(it.share)}%, ${it.usage?.usageLabel() ?: "—"} de tela)"
         }
         val detail = "$list. Chamadas de vídeo somam ${format(share)}% do consumo estimado " +
             "— câmera, tela acesa, codificação e rádio ao mesmo tempo."
