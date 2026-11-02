@@ -92,36 +92,39 @@ object VtClient {
 
             val body = conn.inputStream.bufferedReader().use { it.readText() }
             val verdict = parse(body, sha256)
-                ?: return VtLookupResult.Failed("Resposta do VirusTotal não reconhecida.")
-            SecurityHashStore.saveVerdict(context, sha256, verdict)
-            VtLookupResult.Done(verdict)
+            if (verdict == null) {
+                VtLookupResult.Failed("Resposta do VirusTotal não reconhecida.")
+            } else {
+                SecurityHashStore.saveVerdict(context, sha256, verdict)
+                VtLookupResult.Done(verdict)
+            }
         } catch (e: Exception) {
             VtLookupResult.Failed("Sem conexão com o VirusTotal: ${e.javaClass.simpleName}.")
         }
     }
 
-    private fun parse(body: String, sha256: String): VtVerdict? = try {
-        val attributes = JSONObject(body)
-            .optJSONObject("data")
-            ?.optJSONObject("attributes")
-            ?: return null
-        val stats = attributes.optJSONObject("last_analysis_stats")
-        val malicious = stats?.optInt("malicious") ?: 0
-        val suspicious = stats?.optInt("suspicious") ?: 0
-        val harmless = stats?.optInt("harmless") ?: 0
-        val undetected = stats?.optInt("undetected") ?: 0
-        val permalink = attributes.optString(
-            "permalink", "https://www.virustotal.com/gui/file/$sha256"
-        )
-        VtVerdict(
-            malicious = malicious,
-            suspicious = suspicious,
-            harmless = harmless,
-            undetected = undetected,
-            permalink = permalink,
-            checkedAt = System.currentTimeMillis()
-        )
-    } catch (_: Exception) {
-        null
+    private fun parse(body: String, sha256: String): VtVerdict? {
+        return try {
+            val attributes = JSONObject(body)
+                .optJSONObject("data")
+                ?.optJSONObject("attributes")
+            if (attributes == null) {
+                null
+            } else {
+                val stats = attributes.optJSONObject("last_analysis_stats")
+                VtVerdict(
+                    malicious = stats?.optInt("malicious") ?: 0,
+                    suspicious = stats?.optInt("suspicious") ?: 0,
+                    harmless = stats?.optInt("harmless") ?: 0,
+                    undetected = stats?.optInt("undetected") ?: 0,
+                    permalink = attributes.optString(
+                        "permalink", "https://www.virustotal.com/gui/file/$sha256"
+                    ),
+                    checkedAt = System.currentTimeMillis()
+                )
+            }
+        } catch (_: Exception) {
+            null
+        }
     }
 }
