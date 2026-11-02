@@ -85,7 +85,7 @@ jobs:
           fi
 
       - name: Assinar APK
-        if: ${{ !inputs.build_only }}
+        if: ${{ !inputs.build_only && !contains(github.ref_name, '-diag') }}
         run: |
           mkdir -p dist
           $ANDROID_HOME/build-tools/34.0.0/zipalign -f 4 \
@@ -98,7 +98,7 @@ jobs:
             --out dist/SysScan.apk dist/app-aligned.apk
 
       - name: Publicar release no GitHub
-        if: ${{ !inputs.build_only }}
+        if: ${{ !inputs.build_only && !contains(github.ref_name, '-diag') }}
         uses: softprops/action-gh-release@v2
         with:
           files: dist/SysScan.apk
