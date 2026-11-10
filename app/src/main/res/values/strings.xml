@@ -2,7 +2,6 @@
 <resources>
     <string name="app_name">SysScan</string>
 
-    <string name="scan_title">Varredura do sistema</string>
     <string name="scan_subtitle">Diagnóstico de estabilidade estilo sfc /scannow</string>
     <string name="scan_start">Iniciar varredura</string>
     <string name="scan_again">Nova varredura</string>
@@ -13,22 +12,13 @@
     <string name="score_summary_warn">Foram encontrados pontos de atenção. Revise os itens abaixo.</string>
     <string name="score_summary_critical">Problemas críticos detectados. Corrija os itens abaixo.</string>
 
-    <string name="results_title">Resultados da varredura</string>
-    <string name="results_ok">OK</string>
-    <string name="results_warning">Atenção</string>
-    <string name="results_critical">Crítico</string>
-    <string name="results_info">Info</string>
     <string name="results_fix">Corrigir</string>
-    <string name="results_repaired">Corrigido</string>
     <string name="fix_running">Executando reparo…</string>
-    <string name="fix_not_possible">Sem correção automática</string>
 
-    <string name="elapsed_label">Tempo da varredura</string>
 
     <string name="fix_all">Corrigir tudo</string>
     <string name="fix_all_running">Corrigindo todos os itens…</string>
     <string name="fix_all_done">Reparos em lote concluídos</string>
-    <string name="fix_all_none">Nenhum item corrigível no momento</string>
 
     <string name="history_title">Histórico de varreduras</string>
     <string name="history_chart_title">Evolução do score de saúde</string>
@@ -40,13 +30,11 @@
 
     <string name="update_check">Verificar atualização</string>
     <string name="update_checking">Verificando atualização…</string>
-    <string name="update_uptodate">Você está na versão mais recente</string>
     <string name="update_uptodate_detail">Atualizado. Instalado %1$s, última Release %2$s.</string>
-    <string name="update_not_configured">Repositório de atualizações não configurado</string>
     <string name="update_error">Não foi possível verificar atualizações</string>
     <string name="update_available">Nova versão disponível</string>
     <string name="update_banner">Atualizar para %1$s</string>
-    <string name="update_allow_unknown">Permita instalar apps deste origem e toque de novo em Atualizar.</string>
+    <string name="update_allow_unknown">Permita instalar apps desta origem e toque de novo em Atualizar.</string>
     <string name="update_download_install">Baixar e instalar</string>
     <string name="update_later">Depois</string>
     <string name="update_downloading">Baixando atualização…</string>
@@ -94,18 +82,15 @@
     <string name="battery_app_open">Abrir app</string>
     <string name="battery_app_restrict">Restringir bateria</string>
     <string name="battery_app_close">Fechar</string>
-    <string name="battery_app_details_title">Detalhes de consumo</string>
     <string name="battery_restrict_hint">Em Ajustes do app > Bateria, escolha Restringir ou Otimizar. Isso reduz a atividade em segundo plano.</string>
     <string name="battery_no_launch">Este app não tem tela inicial para abrir.</string>
     <string name="battery_open_failed">Não foi possível abrir as configurações do app.</string>
     <string name="chat_chip_battery_apps">Qual app gasta mais bateria?</string>
-    <string name="battery_percent_share">%1$s%%</string>
 
     <string name="security_title">Varredura de segurança</string>
     <string name="security_subtitle">Apps ocultos, espiões e malware</string>
     <string name="security_open">Verificar vírus e apps ocultos</string>
     <string name="security_scanning">Analisando aplicativos…</string>
-    <string name="security_hashing">Calculando assinaturas dos apps suspeitos…</string>
     <string name="security_rescan">Verificar de novo</string>
     <string name="security_total">%1$d apps verificados</string>
     <string name="security_clean_title">Nenhum app suspeito</string>
@@ -115,9 +100,6 @@
     <string name="security_filter_all">Todos</string>
     <string name="security_filter_suspicious">Suspeitos</string>
     <string name="security_filter_hidden">Ocultos</string>
-    <string name="security_section_hidden">Apps sem ícone (%1$d)</string>
-    <string name="security_section_suspicious">Apps com indícios (%1$d)</string>
-    <string name="security_section_special">Com poderes especiais (%1$d)</string>
     <string name="security_vt_button">Verificar no VirusTotal</string>
     <string name="security_vt_running">Consultando o VirusTotal…</string>
     <string name="security_vt_settings">Chave do VirusTotal (opcional)</string>
@@ -127,18 +109,12 @@
     <string name="security_vt_ok">Nenhum antivírus detectou malware</string>
     <string name="security_vt_bad">%1$d de %2$d motores detectaram malware</string>
     <string name="security_vt_unknown">APK ainda não analisado pelo VirusTotal</string>
-    <string name="security_vt_quota">Limite de consultas do VirusTotal atingido. Tente mais tarde.</string>
-    <string name="security_vt_no_key">Configure a chave do VirusTotal para verificar os APKs.</string>
-    <string name="security_vt_missing_hash">Assinatura deste APK indisponível.</string>
-    <string name="security_app_details_title">Ficha de segurança</string>
     <string name="security_app_uninstall">Desinstalar</string>
     <string name="security_app_settings">Ajustes do app</string>
     <string name="security_app_close">Fechar</string>
     <string name="security_uninstall_failed">Não foi possível abrir a desinstalação. Se for administrador do aparelho, remova essa permissão antes.</string>
     <string name="security_empty">Nenhum app analisado ainda. Toque em Verificar de novo.</string>
-    <string name="security_error">Não foi possível concluir a varredura de segurança.</string>
     <string name="security_risk_label">risco %1$d/100</string>
-    <string name="security_scan_hidden_only">Mostrando apenas apps sem ícone</string>
     <string name="chat_chip_virus">Tem vírus no meu celular?</string>
 
     <string name="call_mode_open">Modo chamada</string>

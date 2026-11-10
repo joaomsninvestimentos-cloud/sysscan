@@ -127,10 +127,13 @@ execução automática.
   dependências externas)
 - **Dark mode**: alternância entre claro/escuro pelo botão no cabeçalho
 
-### Atualização automática (OTA)
-O app consulta `joaomsninvestimentos-cloud/sysscan` na API do GitHub (ao abrir e no
-ícone de download). Se a última Release tiver um APK com versão maior, baixa e instala.
-O fluxo CI/CD está em `DEPLOY.md`.
+### Atualização automática (OTA) — só para builds fora da loja
+
+Esta parte é **infraestrutura de distribuição**, não diagnóstico: o app consulta
+`joaomsninvestimentos-cloud/sysscan` na API do GitHub (ao abrir e no ícone de download) e,
+se a última Release tiver um APK com versão maior, baixa e pede para instalar (o Android
+sempre exige a confirmação do usuário). Por isso existe a permissão
+`REQUEST_INSTALL_PACKAGES`. O fluxo CI/CD está em `DEPLOY.md`.
 
 ### Assistente (chat)
 Ícone de conversa no topo. Lê a última varredura e responde com um plano de melhoria
@@ -226,19 +229,25 @@ Os APKs ficam em `app/build/outputs/apk/debug/` e `app/build/outputs/apk/release
 
 ## APK de release assinado
 
-O projeto inclui um keystore de demonstração (`release.keystore`, senha `sysscan123`)
-usado para assinar o APK de produção:
+O `release.keystore` **não é versionado** (está no `.gitignore`). Gere o seu uma vez e
+guarde-o em local seguro — perder o keystore impede atualizar um app já instalado:
+
+```bash
+keytool -genkeypair -v -keystore release.keystore -alias sysscan \
+  -keyalg RSA -keysize 2048 -validity 10000
+```
+
+Depois de compilar, assine manualmente:
 
 ```bash
 zipalign -f 4 app/build/outputs/apk/release/app-release-unsigned.apk dist/app-aligned.apk
 apksigner sign --ks release.keystore --ks-key-alias sysscan \
-  --ks-pass pass:sysscan123 --key-pass pass:sysscan123 \
-  --out dist/SysScan-v3.0.2-release.apk dist/app-aligned.apk
+  --out dist/SysScan-v3.3.0-release.apk dist/app-aligned.apk
 ```
 
-O APK assinado fica em `dist/SysScan-v3.0.2-release.apk` e já pode ser instalado.
-
-> Em um projeto de produção, use seu próprio keystore e não o versione no git.
+O APK assinado fica em `dist/SysScan-v3.3.0-release.apk` e já pode ser instalado.
+No dia a dia não é preciso fazer isso na mão: o GitHub Actions assina e publica a
+Release quando você cria uma tag (veja `DEPLOY.md`).
 
 ## Permissões
 

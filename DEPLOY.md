@@ -72,13 +72,13 @@ git add .
 git commit -m "feat: nova funcionalidade"
 git push
 
-# Versão da nova atualização (o app está na 3.0.2)
-git tag v3.0.2
-git push origin v3.0.2
+# Versão da nova atualização (o app está na 3.3.0)
+git tag v3.3.1
+git push origin v3.3.1
 ```
 
 O workflow `build-release.yml` roda, compila, assina e publica a Release
-`v3.0.2` com o `SysScan.apk` anexado. Não é preciso ter JDK nem Android SDK
+`v3.3.1` com o `SysScan.apk` anexado. Não é preciso ter JDK nem Android SDK
 na máquina: o build acontece no runner do GitHub.
 
 ## Gerar o APK sem publicar (opcional)
@@ -102,7 +102,7 @@ https://api.github.com/repos/joaomsninvestimentos-cloud/sysscan/releases/latest
   (conceda uma vez para o SysScan).
 
 > A comparação usa a tag da Release (sem o prefixo `v`) contra o
-> `versionName` do app. Ex.: tag `v3.0.2` atualiza um app na versão `2.5`.
+> `versionName` do app. Ex.: tag `v3.3.1` atualiza um app na versão `3.3.0`.
 
 ## Como aplicar o mesmo fluxo ao seu app financeiro (outra IA)
 
