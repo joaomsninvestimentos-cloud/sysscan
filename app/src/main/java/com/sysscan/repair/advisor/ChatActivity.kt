@@ -4,13 +4,8 @@ import android.os.Bundle
 import android.view.LayoutInflater
 import android.view.ViewGroup
 import android.view.inputmethod.EditorInfo
-import android.widget.EditText
-import android.widget.LinearLayout
-import android.widget.Toast
-import androidx.appcompat.app.AlertDialog
 import androidx.appcompat.app.AppCompatActivity
 import androidx.core.content.ContextCompat
-import androidx.lifecycle.lifecycleScope
 import androidx.recyclerview.widget.LinearLayoutManager
 import androidx.recyclerview.widget.RecyclerView
 import com.sysscan.repair.R
@@ -19,9 +14,6 @@ import com.sysscan.repair.databinding.ItemChatMessageBinding
 import com.sysscan.repair.diag.battery.BatteryUsageReport
 import com.sysscan.repair.diag.battery.BatteryUsageStore
 import com.sysscan.repair.security.SecurityResultsStore
-import kotlinx.coroutines.Dispatchers
-import kotlinx.coroutines.launch
-import kotlinx.coroutines.withContext
 
 class ChatActivity : AppCompatActivity() {
 
@@ -30,8 +22,6 @@ class ChatActivity : AppCompatActivity() {
     private var snapshot: ScanSnapshot? = null
     private var battery: BatteryUsageReport? = null
     private var security: SecurityResultsStore.StoredScan? = null
-    private val history = mutableListOf<Pair<String, String>>()
-    private var sending = false
 
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
@@ -48,7 +38,6 @@ class ChatActivity : AppCompatActivity() {
         binding.chatList.adapter = adapter
 
         binding.btnBack.setOnClickListener { finish() }
-        binding.btnLlmSettings.setOnClickListener { showLlmSettings() }
         binding.btnSend.setOnClickListener { sendCurrent() }
         binding.chatInput.setOnEditorActionListener { _, actionId, _ ->
             if (actionId == EditorInfo.IME_ACTION_SEND) {
@@ -65,7 +54,6 @@ class ChatActivity : AppCompatActivity() {
         }
         binding.chipVirus.setOnClickListener { sendText(getString(R.string.chat_chip_virus)) }
 
-        refreshModeLabel()
         addBot(DeviceAdvisor.greeting(snapshot, battery, security))
     }
 
@@ -76,14 +64,6 @@ class ChatActivity : AppCompatActivity() {
         security = SecurityResultsStore.load(this) ?: security
     }
 
-    private fun refreshModeLabel() {
-        binding.chatMode.text = if (LlmSettings.isConfigured(this)) {
-            getString(R.string.chat_mode_llm)
-        } else {
-            getString(R.string.chat_mode_local)
-        }
-    }
-
     private fun sendCurrent() {
         val text = binding.chatInput.text?.toString()?.trim().orEmpty()
         if (text.isEmpty()) return
@@ -92,36 +72,8 @@ class ChatActivity : AppCompatActivity() {
     }
 
     private fun sendText(text: String) {
-        if (sending) return
         addUser(text)
-        history.add("user" to text)
-        if (LlmSettings.isConfigured(this)) {
-            sending = true
-            binding.btnSend.isEnabled = false
-            addBot(getString(R.string.chat_thinking))
-            val prior = history.toList()
-            lifecycleScope.launch {
-                val reply = withContext(Dispatchers.IO) {
-                    try {
-                        LlmClient.ask(
-                            this@ChatActivity, text, snapshot, prior.dropLast(1),
-                            battery, security
-                        )
-                    } catch (_: Exception) {
-                        DeviceAdvisor.answer(text, snapshot, battery, security)
-                    }
-                }
-                adapter.replaceLastBot(reply)
-                history.add("assistant" to reply)
-                sending = false
-                binding.btnSend.isEnabled = true
-                scrollToEnd()
-            }
-        } else {
-            val reply = DeviceAdvisor.answer(text, snapshot, battery, security)
-            addBot(reply)
-            history.add("assistant" to reply)
-        }
+        addBot(DeviceAdvisor.answer(text, snapshot, battery, security))
     }
 
     private fun addUser(text: String) {
@@ -140,47 +92,6 @@ class ChatActivity : AppCompatActivity() {
             if (last >= 0) binding.chatList.scrollToPosition(last)
         }
     }
-
-    private fun showLlmSettings() {
-        val pad = (16 * resources.displayMetrics.density).toInt()
-        val layout = LinearLayout(this).apply {
-            orientation = LinearLayout.VERTICAL
-            setPadding(pad, pad / 2, pad, 0)
-        }
-        val keyInput = EditText(this).apply {
-            hint = getString(R.string.chat_llm_key)
-            setText(LlmSettings.apiKey(this@ChatActivity))
-            inputType = android.text.InputType.TYPE_CLASS_TEXT or
-                android.text.InputType.TYPE_TEXT_VARIATION_PASSWORD
-        }
-        val urlInput = EditText(this).apply {
-            hint = getString(R.string.chat_llm_url)
-            setText(LlmSettings.baseUrl(this@ChatActivity))
-        }
-        val modelInput = EditText(this).apply {
-            hint = getString(R.string.chat_llm_model)
-            setText(LlmSettings.model(this@ChatActivity))
-        }
-        layout.addView(keyInput)
-        layout.addView(urlInput)
-        layout.addView(modelInput)
-        AlertDialog.Builder(this)
-            .setTitle(R.string.chat_settings)
-            .setMessage(R.string.chat_llm_help)
-            .setView(layout)
-            .setPositiveButton(R.string.chat_save) { _, _ ->
-                LlmSettings.save(
-                    this,
-                    keyInput.text.toString(),
-                    urlInput.text.toString(),
-                    modelInput.text.toString()
-                )
-                refreshModeLabel()
-                Toast.makeText(this, R.string.chat_saved, Toast.LENGTH_SHORT).show()
-            }
-            .setNegativeButton(android.R.string.cancel, null)
-            .show()
-    }
 }
 
 data class ChatMessage(
@@ -195,14 +106,6 @@ private class ChatAdapter : RecyclerView.Adapter<ChatAdapter.VH>() {
     fun add(message: ChatMessage) {
         items.add(message)
         notifyItemInserted(items.lastIndex)
-    }
-
-    fun replaceLastBot(text: String) {
-        val idx = items.indexOfLast { !it.fromUser }
-        if (idx >= 0) {
-            items[idx] = ChatMessage(text, fromUser = false)
-            notifyItemChanged(idx)
-        }
     }
 
     override fun getItemCount(): Int = items.size

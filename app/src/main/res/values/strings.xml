@@ -65,16 +65,7 @@
     <string name="chat_back">Voltar</string>
     <string name="chat_hint">Pergunte como melhorar o aparelho…</string>
     <string name="chat_send">Enviar</string>
-    <string name="chat_thinking">Pensando…</string>
     <string name="chat_mode_local">Dicas com base na varredura (sem internet)</string>
-    <string name="chat_mode_llm">IA online (sua chave)</string>
-    <string name="chat_settings">IA online (opcional)</string>
-    <string name="chat_llm_help">Cole sua própria chave de API. O app usa o padrão OpenAI-compatible (ex.: DeepSeek). Deixe em branco para usar só as dicas locais da varredura.</string>
-    <string name="chat_llm_key">USER_LLM_API_KEY</string>
-    <string name="chat_llm_url">https://api.deepseek.com/v1</string>
-    <string name="chat_llm_model">deepseek-chat</string>
-    <string name="chat_save">Salvar</string>
-    <string name="chat_saved">Configuração salva</string>
     <string name="chat_chip_plan">O que eu faço agora?</string>
     <string name="chat_chip_battery">Melhorar bateria</string>
     <string name="chat_chip_slow">Celular lento</string>

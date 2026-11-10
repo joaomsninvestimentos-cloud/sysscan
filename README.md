@@ -133,9 +133,9 @@ O fluxo CI/CD está em `DEPLOY.md`.
 
 ### Assistente (chat)
 Ícone de conversa no topo. Lê a última varredura e responde com um plano de melhoria
-(bateria, lentidão, calor, espaço, rede, **vírus e apps ocultos**). Funciona **offline**. Opcionalmente, no
-próprio chat, cole sua chave `USER_LLM_API_KEY` (API compatível com OpenAI, ex. DeepSeek)
-para respostas mais livres.
+(bateria, lentidão, calor, espaço, rede, **vírus e apps ocultos**). Funciona **100% offline**
+e **nenhum dado do aparelho sai dele**: o assistente é um motor de regras local
+(`DeviceAdvisor`), sem chave de API e sem chamadas a servidores de terceiros.
 
 ## Limitações importantes
 
@@ -198,9 +198,8 @@ app/src/main/java/com/sysscan/repair/
 ├── repair/
 │   └── RepairEngine.kt          # Registro e execução das ações de reparo
 ├── advisor/
-│   ├── ChatActivity.kt          # Chat de dicas (local + LLM opcional)
-│   ├── DeviceAdvisor.kt         # Respostas com base na última varredura
-│   └── LlmClient.kt             # Cliente OpenAI-compatible (USER_LLM_*)
+│   ├── ChatActivity.kt          # Chat de dicas (100% local)
+│   └── DeviceAdvisor.kt         # Respostas com base na última varredura
 └── history/
     ├── ScanHistoryStore.kt      # Persistência das varreduras (SharedPreferences)
     ├── ScoreChartView.kt        # Gráfico da evolução do score (view custom)
