@@ -244,12 +244,17 @@ O APK assinado fica em `dist/SysScan-v3.0.2-release.apk` e já pode ser instalad
 
 | Permissão | Uso |
 |---|---|
-| `INTERNET` / `ACCESS_NETWORK_STATE` / `ACCESS_WIFI_STATE` | Diagnóstico de rede e DNS |
-| `BATTERY_STATS` | Leitura de dados da bateria |
-| `KILL_BACKGROUND_PROCESSES` | Otimização de memória |
+| `INTERNET` / `ACCESS_NETWORK_STATE` | Diagnóstico de rede/DNS e consulta à API do GitHub (atualização e VirusTotal) |
 | `QUERY_ALL_PACKAGES` | Listar e analisar apps instalados |
 | `PACKAGE_USAGE_STATS` | Ranking de consumo por app e tráfego de rede por UID (concedida em Configurações > Acesso especial > Acesso ao uso) |
-| `READ_LOGS` | Leitura de registros de falhas (auto-concedida em builds de debug) |
+| `REQUEST_INSTALL_PACKAGES` | Instalar o APK da atualização baixada (só em builds fora da loja) |
+
+Permissões que **não** são pedidas: nada de brilho/configurações do sistema
+(`WRITE_SETTINGS` foi removida), nada de microfone, câmera, contatos ou localização.
+Bateria, memória e falhas são lidas por APIs públicas (`BatteryManager`,
+`ActivityManager`, `DropBoxManager`, `/proc/stat`) — as permissões privilegiadas
+`BATTERY_STATS`, `READ_LOGS`, `KILL_BACKGROUND_PROCESSES` e `ACCESS_WIFI_STATE`
+não teriam efeito em app comum e foram removidas do manifest.
 
 ## Como instalar
 
@@ -257,8 +262,9 @@ O APK assinado fica em `dist/SysScan-v3.0.2-release.apk` e já pode ser instalad
 2. Copie o APK para o celular (ou use `adb install app-debug.apk`).
 3. Abra o app e toque em **Iniciar varredura**.
 
-> Permissões especiais (como `READ_LOGS`) são declaradas no manifest e concedidas
-> automaticamente em builds de debug.
+> A única permissão de acesso especial é o **Acesso ao uso** (`PACKAGE_USAGE_STATS`), que o
+> Android concede manualmente em Configurações > Acesso especial > Acesso ao uso. Sem ela o
+> app continua funcionando: apenas o ranking de consumo por app fica indisponível.
 
 ## Stack
 
