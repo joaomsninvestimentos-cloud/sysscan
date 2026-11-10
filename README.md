@@ -41,8 +41,9 @@ Botão na tela inicial (abaixo de *Iniciar varredura*) que abre o detalhamento d
 - **Janelas de 1h / 6h / 24h** para ver o que pesou agora ou no dia.
 - **Modo chamada** (novo): botão que reúne os apps de chamada de vídeo (Zoom, Meet, Teams,
   WhatsApp...) com o consumo medido de cada um lado a lado, checklist do que mais economiza e
-  atalhos para **baixar o brilho** (com restauração), abrir Wi-Fi/rede, ir aos ajustes de
-  bateria do app e **medir a corrente na hora** para comparar.
+  atalhos para abrir Wi-Fi/rede, ir aos ajustes de bateria do app e **medir a corrente na
+  hora** para comparar. O app **não altera** configurações do aparelho (brilho, modo de tela):
+  ele só mede e leva você à tela certa.
 - Toque em um app para ver os detalhes e usar **Restringir bateria** (abre os ajustes do app,
   onde se escolhe *Restringir*/*Otimizar*) ou **Abrir app**.
 - O relatório fica salvo no aparelho e alimenta o assistente ("qual app gasta mais bateria?").
@@ -91,9 +92,9 @@ botão na tela de bateria e mostra:
   disponíveis), com a soma do que as chamadas representam no consumo;
 - **checklist do que mais economiza** — áudio-only primeiro, depois brilho, Wi-Fi, filtros e
   fundo virtual;
-- **atalhos**: baixar o brilho (`WRITE_SETTINGS`, com botão para restaurar o valor anterior),
-  abrir Wi-Fi/rede, ir aos ajustes de bateria do app e **medir o consumo agora** — assim dá
-  para comparar "chamada com câmera" contra "só áudio".
+- **atalhos**: abrir Wi-Fi/rede, ir aos ajustes de bateria do app e **medir o consumo
+  agora** — assim dá para comparar "chamada com câmera" contra "só áudio". Nenhuma
+  configuração do sistema é alterada pelo SysScan.
 
 A varredura também ganhou o item **"Apps de chamada de vídeo"**, que avisa quando as chamadas
 passam de 25% do consumo estimado.
@@ -105,8 +106,8 @@ pacotes (inclusive ocultos), permissões, poderes ativos, origem da instalação
 cruzar com o consumo de bateria. **Não** consegue: ler todos os arquivos do sistema, achar
 binários soltos em `/data`, inspecionar o conteúdo interno de cada APK ou remover malware
 automaticamente. Por isso ela aponta **indícios explicados** e leva o usuário à ação correta
-(desinstalar, revogar acessibilidade, trocar senhas). Nenhuma permissão nova foi adicionada —
-usa as mesmas `QUERY_ALL_PACKAGES` e `PACKAGE_USAGE_STATS` que o app já declarava.
+(desinstalar, revogar acessibilidade, trocar senhas). Usa as mesmas `QUERY_ALL_PACKAGES` e
+`PACKAGE_USAGE_STATS` que o app já declarava.
 
 ### Filtros OK / Atenção / Crítico
 Os contadores são botões: toque em **Atenção** ou **Crítico** para filtrar e ir direto ao
@@ -126,16 +127,34 @@ execução automática.
   dependências externas)
 - **Dark mode**: alternância entre claro/escuro pelo botão no cabeçalho
 
-### Atualização automática (OTA)
-O app consulta `joaomsninvestimentos-cloud/sysscan` na API do GitHub (ao abrir e no
-ícone de download). Se a última Release tiver um APK com versão maior, baixa e instala.
-O fluxo CI/CD está em `DEPLOY.md`.
+### Atualização automática (OTA) — só para builds fora da loja
+
+Esta parte é **infraestrutura de distribuição**, não diagnóstico: o app consulta
+`joaomsninvestimentos-cloud/sysscan` na API do GitHub (ao abrir e no ícone de download) e,
+se a última Release tiver um APK com versão maior, baixa e pede para instalar (o Android
+sempre exige a confirmação do usuário). Por isso existe a permissão
+`REQUEST_INSTALL_PACKAGES`. O fluxo CI/CD está em `DEPLOY.md`.
 
 ### Assistente (chat)
 Ícone de conversa no topo. Lê a última varredura e responde com um plano de melhoria
-(bateria, lentidão, calor, espaço, rede, **vírus e apps ocultos**). Funciona **offline**. Opcionalmente, no
-próprio chat, cole sua chave `USER_LLM_API_KEY` (API compatível com OpenAI, ex. DeepSeek)
-para respostas mais livres.
+(bateria, lentidão, calor, espaço, rede, **vírus e apps ocultos**). Funciona **100% offline**
+e **nenhum dado do aparelho sai dele**: o assistente é um motor de regras local
+(`DeviceAdvisor`), sem chave de API e sem chamadas a servidores de terceiros.
+
+## Escopo do app (o que entra e o que não entra)
+
+O SysScan existe para uma coisa: **medir o aparelho, explicar o que encontrou e levar você
+ao ajuste certo — sem root e sem tirar nada do celular**. Tudo o que foge disso fica fora:
+
+- **Não envia dados para fora.** O assistente é local (`DeviceAdvisor`). As duas únicas
+  chamadas de rede são a checagem de atualização no GitHub e a consulta opcional ao
+  VirusTotal (que envia **só o hash SHA-256** do APK).
+- **Não altera configurações do sistema.** Nada de mexer em brilho, modo de tela ou economia
+  de energia por conta própria: o app mostra o número e abre a tela de ajustes.
+- **Não usa IA de terceiros.** Sem chave de API, sem servidor de LLM.
+- **Não é antivírus com assinaturas.** Aponta indícios explicados e cruza com bateria.
+- **A atualização (OTA) é distribuição, não diagnóstico** — existe só para builds fora da
+  loja, com confirmação do usuário na instalação.
 
 ## Limitações importantes
 
@@ -182,7 +201,7 @@ app/src/main/java/com/sysscan/repair/
 │   └── SystemIntegrityDiagnostic.kt
 ├── battery/
 │   ├── BatteryUsageActivity.kt  # Tela "Quem gasta a bateria?"
-│   ├── CallModeHelper.kt        # Apps de chamada, brilho e checklist
+│   ├── CallModeHelper.kt        # Apps de chamada, medição e checklist
 │   └── CallModeController.kt    # Diálogo do Modo chamada
 ├── security/
 │   ├── SecurityActivity.kt      # Tela "Verificar vírus e apps ocultos"
@@ -198,9 +217,8 @@ app/src/main/java/com/sysscan/repair/
 ├── repair/
 │   └── RepairEngine.kt          # Registro e execução das ações de reparo
 ├── advisor/
-│   ├── ChatActivity.kt          # Chat de dicas (local + LLM opcional)
-│   ├── DeviceAdvisor.kt         # Respostas com base na última varredura
-│   └── LlmClient.kt             # Cliente OpenAI-compatible (USER_LLM_*)
+│   ├── ChatActivity.kt          # Chat de dicas (100% local)
+│   └── DeviceAdvisor.kt         # Respostas com base na última varredura
 └── history/
     ├── ScanHistoryStore.kt      # Persistência das varreduras (SharedPreferences)
     ├── ScoreChartView.kt        # Gráfico da evolução do score (view custom)
@@ -226,31 +244,41 @@ Os APKs ficam em `app/build/outputs/apk/debug/` e `app/build/outputs/apk/release
 
 ## APK de release assinado
 
-O projeto inclui um keystore de demonstração (`release.keystore`, senha `sysscan123`)
-usado para assinar o APK de produção:
+O `release.keystore` **não é versionado** (está no `.gitignore`). Gere o seu uma vez e
+guarde-o em local seguro — perder o keystore impede atualizar um app já instalado:
+
+```bash
+keytool -genkeypair -v -keystore release.keystore -alias sysscan \
+  -keyalg RSA -keysize 2048 -validity 10000
+```
+
+Depois de compilar, assine manualmente:
 
 ```bash
 zipalign -f 4 app/build/outputs/apk/release/app-release-unsigned.apk dist/app-aligned.apk
 apksigner sign --ks release.keystore --ks-key-alias sysscan \
-  --ks-pass pass:sysscan123 --key-pass pass:sysscan123 \
-  --out dist/SysScan-v3.0.2-release.apk dist/app-aligned.apk
+  --out dist/SysScan-v3.4.0-release.apk dist/app-aligned.apk
 ```
 
-O APK assinado fica em `dist/SysScan-v3.0.2-release.apk` e já pode ser instalado.
-
-> Em um projeto de produção, use seu próprio keystore e não o versione no git.
+O APK assinado fica em `dist/SysScan-v3.4.0-release.apk` e já pode ser instalado.
+No dia a dia não é preciso fazer isso na mão: o GitHub Actions assina e publica a
+Release quando você cria uma tag (veja `DEPLOY.md`).
 
 ## Permissões
 
 | Permissão | Uso |
 |---|---|
-| `INTERNET` / `ACCESS_NETWORK_STATE` / `ACCESS_WIFI_STATE` | Diagnóstico de rede e DNS |
-| `BATTERY_STATS` | Leitura de dados da bateria |
-| `KILL_BACKGROUND_PROCESSES` | Otimização de memória |
+| `INTERNET` / `ACCESS_NETWORK_STATE` | Diagnóstico de rede/DNS e consulta à API do GitHub (atualização e VirusTotal) |
 | `QUERY_ALL_PACKAGES` | Listar e analisar apps instalados |
 | `PACKAGE_USAGE_STATS` | Ranking de consumo por app e tráfego de rede por UID (concedida em Configurações > Acesso especial > Acesso ao uso) |
-| `READ_LOGS` | Leitura de registros de falhas (auto-concedida em builds de debug) |
-| `WRITE_SETTINGS` | Baixar o brilho no Modo chamada (permissão especial, pedida só quando usado) |
+| `REQUEST_INSTALL_PACKAGES` | Instalar o APK da atualização baixada (só em builds fora da loja) |
+
+Permissões que **não** são pedidas: nada de brilho/configurações do sistema
+(`WRITE_SETTINGS` foi removida), nada de microfone, câmera, contatos ou localização.
+Bateria, memória e falhas são lidas por APIs públicas (`BatteryManager`,
+`ActivityManager`, `DropBoxManager`, `/proc/stat`) — as permissões privilegiadas
+`BATTERY_STATS`, `READ_LOGS`, `KILL_BACKGROUND_PROCESSES` e `ACCESS_WIFI_STATE`
+não teriam efeito em app comum e foram removidas do manifest.
 
 ## Como instalar
 
@@ -258,12 +286,13 @@ O APK assinado fica em `dist/SysScan-v3.0.2-release.apk` e já pode ser instalad
 2. Copie o APK para o celular (ou use `adb install app-debug.apk`).
 3. Abra o app e toque em **Iniciar varredura**.
 
-> Permissões especiais (como `READ_LOGS`) são declaradas no manifest e concedidas
-> automaticamente em builds de debug.
+> A única permissão de acesso especial é o **Acesso ao uso** (`PACKAGE_USAGE_STATS`), que o
+> Android concede manualmente em Configurações > Acesso especial > Acesso ao uso. Sem ela o
+> app continua funcionando: apenas o ranking de consumo por app fica indisponível.
 
 ## Stack
 
 - Kotlin 1.9.24, Android Gradle Plugin 8.3.2, Gradle 8.7
 - compileSdk 34, targetSdk 34, minSdk 24 (Android 7.0+)
 - Material Components, ViewModel + StateFlow, Coroutines, ViewBinding
-- Versão atual: 3.3.0 (sem root)
+- Versão atual: 3.4.0 (sem root)

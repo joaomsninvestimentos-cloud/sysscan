@@ -55,19 +55,11 @@
     </ScrollView>
 
     <com.google.android.material.button.MaterialButton
-        android:id="@+id/btnBrightness"
+        android:id="@+id/btnCallMeasure"
         style="@style/Widget.Material3.Button.TonalButton"
         android:layout_width="match_parent"
         android:layout_height="wrap_content"
         android:layout_marginTop="@dimen/space_small"
-        android:text="@string/call_mode_brightness"
-        android:textAllCaps="false" />
-
-    <com.google.android.material.button.MaterialButton
-        android:id="@+id/btnCallMeasure"
-        style="@style/Widget.Material3.Button.TextButton"
-        android:layout_width="match_parent"
-        android:layout_height="wrap_content"
         android:text="@string/call_mode_measure"
         android:textAllCaps="false" />
 

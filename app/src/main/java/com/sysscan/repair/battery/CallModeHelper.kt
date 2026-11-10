@@ -14,21 +14,17 @@ import com.sysscan.repair.util.Formatters
 import java.util.Locale
 
 /**
- * "Modo chamada": ajuda a reduzir o consumo durante chamadas de vídeo (Zoom, Meet, Teams,
- * WhatsApp...) e mostra, com número, quanto cada app de chamada está pesando.
+ * "Modo chamada": mostra, com número, quanto cada app de chamada de vídeo (Zoom, Meet,
+ * Teams, WhatsApp...) está pesando e o que mais economiza.
  *
  * Por que chamada de vídeo gasta tanto: câmera ligada, tela acesa, codificação de vídeo,
  * cancelamento de eco e o rádio transmitindo em tempo real. Áudio-only derruba o maior
  * bloco desse consumo.
+ *
+ * O SysScan só **mede e orienta**: não altera configurações do sistema (brilho, modo de
+ * tela etc.). As ações levam o usuário à tela certa do Android, que ele mesmo ajusta.
  */
 object CallModeHelper {
-
-    private const val PREFS = "call_mode"
-    private const val KEY_SAVED_BRIGHTNESS = "saved_brightness"
-    private const val KEY_SAVED_MODE = "saved_brightness_mode"
-
-    /** Brilho alvo do modo chamada (0–255): baixo, mas legível. */
-    const val CALL_BRIGHTNESS = 60
 
     /** Apps de chamada conhecidos (não é lista fechada: a heurística pega os demais). */
     private val KNOWN_CALL_PACKAGES = setOf(
@@ -161,96 +157,6 @@ object CallModeHelper {
         }
         return sb.toString()
     }
-
-    // ------------------------------------------------------------------ brilho
-
-    fun canWriteSettings(context: Context): Boolean = try {
-        Settings.System.canWrite(context)
-    } catch (_: Exception) {
-        false
-    }
-
-    fun writeSettingsIntent(context: Context): Intent =
-        Intent(
-            Settings.ACTION_MANAGE_WRITE_SETTINGS,
-            Uri.parse("package:${context.packageName}")
-        ).addFlags(Intent.FLAG_ACTIVITY_NEW_TASK)
-
-    /** Brilho atual do sistema (0–255), ou -1 quando indisponível. */
-    fun currentBrightness(context: Context): Int = try {
-        Settings.System.getInt(
-            context.contentResolver, Settings.System.SCREEN_BRIGHTNESS, -1
-        )
-    } catch (_: Exception) {
-        -1
-    }
-
-    /**
-     * Abaixa o brilho para [CALL_BRIGHTNESS] guardando o valor anterior para restaurar.
-     * Devolve false quando o app não tem permissão de alterar configurações do sistema.
-     */
-    fun lowerBrightness(context: Context): Boolean {
-        if (!canWriteSettings(context)) return false
-        return try {
-            val current = currentBrightness(context)
-            if (current >= 0) {
-                context.getSharedPreferences(PREFS, Context.MODE_PRIVATE).edit()
-                    .putInt(KEY_SAVED_BRIGHTNESS, current)
-                    .apply()
-            }
-            val mode = try {
-                Settings.System.getInt(
-                    context.contentResolver, Settings.System.SCREEN_BRIGHTNESS_MODE, -1
-                )
-            } catch (_: Exception) {
-                -1
-            }
-            if (mode >= 0) {
-                context.getSharedPreferences(PREFS, Context.MODE_PRIVATE).edit()
-                    .putInt(KEY_SAVED_MODE, mode)
-                    .apply()
-            }
-            Settings.System.putInt(
-                context.contentResolver,
-                Settings.System.SCREEN_BRIGHTNESS_MODE,
-                Settings.System.SCREEN_BRIGHTNESS_MODE_MANUAL
-            )
-            Settings.System.putInt(
-                context.contentResolver,
-                Settings.System.SCREEN_BRIGHTNESS,
-                CALL_BRIGHTNESS.coerceIn(0, 255)
-            )
-        } catch (_: Exception) {
-            false
-        }
-    }
-
-    /** Volta ao brilho/modo anteriores, se foram guardados. */
-    fun restoreBrightness(context: Context): Boolean {
-        if (!canWriteSettings(context)) return false
-        val prefs = context.getSharedPreferences(PREFS, Context.MODE_PRIVATE)
-        val brightness = prefs.getInt(KEY_SAVED_BRIGHTNESS, -1)
-        val mode = prefs.getInt(KEY_SAVED_MODE, -1)
-        if (brightness < 0) return false
-        return try {
-            Settings.System.putInt(
-                context.contentResolver, Settings.System.SCREEN_BRIGHTNESS, brightness
-            )
-            if (mode >= 0) {
-                Settings.System.putInt(
-                    context.contentResolver, Settings.System.SCREEN_BRIGHTNESS_MODE, mode
-                )
-            }
-            prefs.edit().remove(KEY_SAVED_BRIGHTNESS).remove(KEY_SAVED_MODE).apply()
-            true
-        } catch (_: Exception) {
-            false
-        }
-    }
-
-    fun hasSavedBrightness(context: Context): Boolean =
-        context.getSharedPreferences(PREFS, Context.MODE_PRIVATE)
-            .getInt(KEY_SAVED_BRIGHTNESS, -1) >= 0
 
     // ------------------------------------------------------------------ atalhos
 

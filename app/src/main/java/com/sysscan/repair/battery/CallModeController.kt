@@ -15,7 +15,8 @@ import java.util.Locale
 
 /**
  * Controla o diálogo "Modo chamada": consumo dos apps de chamada, checklist e atalhos
- * (brilho, rede, restrição de bateria e medição na hora).
+ * (rede, restrição de bateria e medição na hora). Não altera nada no sistema — só mede
+ * e leva o usuário à tela de ajustes correspondente.
  */
 class CallModeController(
     private val activity: AppCompatActivity,
@@ -52,7 +53,6 @@ class CallModeController(
                 )
             }
         }
-        binding.btnBrightness.setOnClickListener { toggleBrightness(binding) }
         binding.btnCallMeasure.setOnClickListener { measure(binding) }
 
         dialog.show()
@@ -77,13 +77,6 @@ class CallModeController(
         binding.callTips.text = CallModeHelper.tips(reading ?: return, apps) +
             "\n\n" + activity.getString(R.string.call_mode_scan_hint)
 
-        binding.btnBrightness.text = activity.getString(
-            if (CallModeHelper.hasSavedBrightness(activity)) {
-                R.string.call_mode_brightness_restore
-            } else {
-                R.string.call_mode_brightness
-            }
-        )
         binding.btnCallMeasure.isEnabled = !measuring
     }
 
@@ -112,31 +105,6 @@ class CallModeController(
         return sb
     }
 
-    private fun toggleBrightness(binding: DialogCallModeBinding) {
-        if (!CallModeHelper.canWriteSettings(activity)) {
-            Toast.makeText(
-                activity, R.string.call_mode_brightness_no_permission, Toast.LENGTH_LONG
-            ).show()
-            start(CallModeHelper.writeSettingsIntent(activity), R.string.battery_open_failed)
-            return
-        }
-        val restored = CallModeHelper.hasSavedBrightness(activity) &&
-            CallModeHelper.restoreBrightness(activity)
-        if (restored) {
-            Toast.makeText(
-                activity, R.string.call_mode_brightness_restored, Toast.LENGTH_SHORT
-            ).show()
-        } else {
-            val lowered = CallModeHelper.lowerBrightness(activity)
-            Toast.makeText(
-                activity,
-                if (lowered) R.string.call_mode_brightness_done
-                else R.string.call_mode_brightness_no_permission,
-                Toast.LENGTH_LONG
-            ).show()
-        }
-        render(binding)
-    }
 
     private fun measure(binding: DialogCallModeBinding) {
         if (measuring) return
