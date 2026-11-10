@@ -41,8 +41,9 @@ Botão na tela inicial (abaixo de *Iniciar varredura*) que abre o detalhamento d
 - **Janelas de 1h / 6h / 24h** para ver o que pesou agora ou no dia.
 - **Modo chamada** (novo): botão que reúne os apps de chamada de vídeo (Zoom, Meet, Teams,
   WhatsApp...) com o consumo medido de cada um lado a lado, checklist do que mais economiza e
-  atalhos para **baixar o brilho** (com restauração), abrir Wi-Fi/rede, ir aos ajustes de
-  bateria do app e **medir a corrente na hora** para comparar.
+  atalhos para abrir Wi-Fi/rede, ir aos ajustes de bateria do app e **medir a corrente na
+  hora** para comparar. O app **não altera** configurações do aparelho (brilho, modo de tela):
+  ele só mede e leva você à tela certa.
 - Toque em um app para ver os detalhes e usar **Restringir bateria** (abre os ajustes do app,
   onde se escolhe *Restringir*/*Otimizar*) ou **Abrir app**.
 - O relatório fica salvo no aparelho e alimenta o assistente ("qual app gasta mais bateria?").
@@ -91,9 +92,9 @@ botão na tela de bateria e mostra:
   disponíveis), com a soma do que as chamadas representam no consumo;
 - **checklist do que mais economiza** — áudio-only primeiro, depois brilho, Wi-Fi, filtros e
   fundo virtual;
-- **atalhos**: baixar o brilho (`WRITE_SETTINGS`, com botão para restaurar o valor anterior),
-  abrir Wi-Fi/rede, ir aos ajustes de bateria do app e **medir o consumo agora** — assim dá
-  para comparar "chamada com câmera" contra "só áudio".
+- **atalhos**: abrir Wi-Fi/rede, ir aos ajustes de bateria do app e **medir o consumo
+  agora** — assim dá para comparar "chamada com câmera" contra "só áudio". Nenhuma
+  configuração do sistema é alterada pelo SysScan.
 
 A varredura também ganhou o item **"Apps de chamada de vídeo"**, que avisa quando as chamadas
 passam de 25% do consumo estimado.
@@ -105,8 +106,8 @@ pacotes (inclusive ocultos), permissões, poderes ativos, origem da instalação
 cruzar com o consumo de bateria. **Não** consegue: ler todos os arquivos do sistema, achar
 binários soltos em `/data`, inspecionar o conteúdo interno de cada APK ou remover malware
 automaticamente. Por isso ela aponta **indícios explicados** e leva o usuário à ação correta
-(desinstalar, revogar acessibilidade, trocar senhas). Nenhuma permissão nova foi adicionada —
-usa as mesmas `QUERY_ALL_PACKAGES` e `PACKAGE_USAGE_STATS` que o app já declarava.
+(desinstalar, revogar acessibilidade, trocar senhas). Usa as mesmas `QUERY_ALL_PACKAGES` e
+`PACKAGE_USAGE_STATS` que o app já declarava.
 
 ### Filtros OK / Atenção / Crítico
 Os contadores são botões: toque em **Atenção** ou **Crítico** para filtrar e ir direto ao
@@ -182,7 +183,7 @@ app/src/main/java/com/sysscan/repair/
 │   └── SystemIntegrityDiagnostic.kt
 ├── battery/
 │   ├── BatteryUsageActivity.kt  # Tela "Quem gasta a bateria?"
-│   ├── CallModeHelper.kt        # Apps de chamada, brilho e checklist
+│   ├── CallModeHelper.kt        # Apps de chamada, medição e checklist
 │   └── CallModeController.kt    # Diálogo do Modo chamada
 ├── security/
 │   ├── SecurityActivity.kt      # Tela "Verificar vírus e apps ocultos"
@@ -249,7 +250,6 @@ O APK assinado fica em `dist/SysScan-v3.0.2-release.apk` e já pode ser instalad
 | `QUERY_ALL_PACKAGES` | Listar e analisar apps instalados |
 | `PACKAGE_USAGE_STATS` | Ranking de consumo por app e tráfego de rede por UID (concedida em Configurações > Acesso especial > Acesso ao uso) |
 | `READ_LOGS` | Leitura de registros de falhas (auto-concedida em builds de debug) |
-| `WRITE_SETTINGS` | Baixar o brilho no Modo chamada (permissão especial, pedida só quando usado) |
 
 ## Como instalar
 
