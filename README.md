@@ -141,6 +141,21 @@ sempre exige a confirmação do usuário). Por isso existe a permissão
 e **nenhum dado do aparelho sai dele**: o assistente é um motor de regras local
 (`DeviceAdvisor`), sem chave de API e sem chamadas a servidores de terceiros.
 
+## Escopo do app (o que entra e o que não entra)
+
+O SysScan existe para uma coisa: **medir o aparelho, explicar o que encontrou e levar você
+ao ajuste certo — sem root e sem tirar nada do celular**. Tudo o que foge disso fica fora:
+
+- **Não envia dados para fora.** O assistente é local (`DeviceAdvisor`). As duas únicas
+  chamadas de rede são a checagem de atualização no GitHub e a consulta opcional ao
+  VirusTotal (que envia **só o hash SHA-256** do APK).
+- **Não altera configurações do sistema.** Nada de mexer em brilho, modo de tela ou economia
+  de energia por conta própria: o app mostra o número e abre a tela de ajustes.
+- **Não usa IA de terceiros.** Sem chave de API, sem servidor de LLM.
+- **Não é antivírus com assinaturas.** Aponta indícios explicados e cruza com bateria.
+- **A atualização (OTA) é distribuição, não diagnóstico** — existe só para builds fora da
+  loja, com confirmação do usuário na instalação.
+
 ## Limitações importantes
 
 O Android **não oferece** um repositório oficial de arquivos de sistema acessível a apps,
@@ -242,10 +257,10 @@ Depois de compilar, assine manualmente:
 ```bash
 zipalign -f 4 app/build/outputs/apk/release/app-release-unsigned.apk dist/app-aligned.apk
 apksigner sign --ks release.keystore --ks-key-alias sysscan \
-  --out dist/SysScan-v3.3.0-release.apk dist/app-aligned.apk
+  --out dist/SysScan-v3.4.0-release.apk dist/app-aligned.apk
 ```
 
-O APK assinado fica em `dist/SysScan-v3.3.0-release.apk` e já pode ser instalado.
+O APK assinado fica em `dist/SysScan-v3.4.0-release.apk` e já pode ser instalado.
 No dia a dia não é preciso fazer isso na mão: o GitHub Actions assina e publica a
 Release quando você cria uma tag (veja `DEPLOY.md`).
 
@@ -280,4 +295,4 @@ não teriam efeito em app comum e foram removidas do manifest.
 - Kotlin 1.9.24, Android Gradle Plugin 8.3.2, Gradle 8.7
 - compileSdk 34, targetSdk 34, minSdk 24 (Android 7.0+)
 - Material Components, ViewModel + StateFlow, Coroutines, ViewBinding
-- Versão atual: 3.3.0 (sem root)
+- Versão atual: 3.4.0 (sem root)
